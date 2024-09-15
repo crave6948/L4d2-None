@@ -6,6 +6,12 @@ namespace Client::Module
 {
     namespace ThirdPersonModule
     {
+        void ThirdPerson::onEnabled()
+        {
+            isLocking = false;
+            isThirdPerson = false;
+        }
+
         void ThirdPerson::onRender2D()
         {
             if (!debug->GetValue())
@@ -18,32 +24,47 @@ namespace Client::Module
         }
         void ThirdPerson::onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
-            // rotation = cmd->viewangles;
+            rotation = cmd->viewangles;
+        }
+        void ThirdPerson::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
+        {
+            if (GetAsyncKeyState(0x55) & 1)
+            {
+                isLocking = !isLocking;
+                if (isLocking)
+                {
+                    lockRotation = cmd->viewangles;
+                    isThirdPerson = true;
+                }else {
+                    isThirdPerson = false;
+                }
+            }
+            if (isLocking)
+            {
+                Helper::Rotation rot;
+                rot.toRotation(lockRotation);
+                Helper::rotationManager.moveTo(rot, 0, true);
+            }
         }
         void ThirdPerson::onFrameStageNotify(ClientFrameStage_t curStage)
         {
             if (!I::EngineClient->IsConnected() || !I::EngineClient->IsInGame() || I::EngineVGui->IsGameUIVisible())
                 return;
-            static bool is_clicking = false;
             // toggle
             {
-                if (GetAsyncKeyState(0x56) & 0x8000)
+                if (GetAsyncKeyState(0x56) & 1)
                 {
-                    if (!is_clicking)
-                        isThirdPerson = !isThirdPerson;
-                    is_clicking = true;
+                    isThirdPerson = !isThirdPerson;
                 }
-                else
-                    is_clicking = false;
             }
             C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
             if (pLocal != nullptr)
             {
                 if (isThirdPerson)
                 {
-                    auto rot = Helper::rotationManager.getServerRotationVector();
-	                I::Prediction->SetLocalViewAngles(rot);
-	                // I::Prediction->SetLocalViewAngles(rotation);
+                    // auto rot = Helper::rotationManager.getServerRotationVector();
+	                // I::Prediction->SetLocalViewAngles(rot);
+	                I::Prediction->SetLocalViewAngles(rotation);
                     I::IInput->m_fCameraInThirdPerson() = true;
                     I::Cvar->FindVar("cam_idealdist")->SetValue(distance->GetValue());
                     I::Cvar->FindVar("cam_collision")->SetValue(true);

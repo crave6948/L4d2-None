@@ -20,8 +20,9 @@ bool __fastcall ClientMode::CreateMove::Detour(void *ecx, void *edx, float input
 	// uintptr_t _ebp; __asm mov _ebp, ebp;
 	// bool* pSendPacket = (bool*)(***(uintptr_t***)_ebp - 0x1D);
 	C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
-	Client::client.moduleManager.onCreateMove(cmd, pLocal);
-	I::Prediction->SetLocalViewAngles(cmd->viewangles);
+	C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();
+	Client::client.moduleManager.onCreateMove(cmd, pLocal, pWeapon);
+	// I::Prediction->SetLocalViewAngles(cmd->viewangles);
 	return false;
 }
 

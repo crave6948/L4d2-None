@@ -7,11 +7,13 @@ namespace Client::Module::AimbotModule
 {
 	void Aimbot::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
 	{
-		if (!(GetAsyncKeyState(VK_LBUTTON) & 0x8000) || !ShouldRun(pLocal, pWeapon, cmd))
+		isLeftClicking = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
+		if (!isLeftClicking || !ShouldRun(pLocal, pWeapon, cmd))
 		{
 			targetInfo = TargetInfo();
 			Helper::rotationManager.ForceBack();
 			lastTime = 0;
+			hasLeftClickBefore = false;
 			return;
 		}
 		bool allowedToSwitch = false;
@@ -40,6 +42,7 @@ namespace Client::Module::AimbotModule
 		float distance = pLocal->Weapon_ShootPosition().DistTo(targetInfo.targetPosition);
 		bool isInCrosshair = isInCrossHair(cmd, pLocal, targetInfo.target);
 
+		hasLeftClickBefore = true;
 		Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair);
 
 		if (cmd->buttons & IN_ATTACK)
@@ -98,6 +101,8 @@ namespace Client::Module::AimbotModule
 	{
 		targetInfo = TargetInfo();
 		lastTime = I::GlobalVars->realtime;
+		isLeftClicking = false;
+		hasLeftClickBefore = false;
 	}
 
 	bool Aimbot::ShouldRun(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd)
@@ -114,7 +119,8 @@ namespace Client::Module::AimbotModule
 		if (cmd->buttons & IN_USE)
 			return false;
 
-		if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pLocal->m_isIncapacitated())
+		// if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pLocal->m_isIncapacitated())
+		if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue())
 			return false;
 
 		// You could also check if the current spread is -1.0f and not run nospread I guess.
@@ -123,7 +129,7 @@ namespace Client::Module::AimbotModule
 		
 		// check if fastmelee is swaping items
 		auto fastMelee = Client::client.moduleManager.fastMelee;
-		if (melee->GetValue() && fastMelee->getEnabled() && fastMelee->isSwaping())
+		if (meleeOnly->GetValue() && fastMelee->getEnabled() && fastMelee->isSwaping())
 			return true;
 		return should;
 	}
@@ -155,10 +161,10 @@ namespace Client::Module::AimbotModule
 		case WEAPON_SPAS:
 		case WEAPON_PUMP_SHOTGUN:
 		case WEAPON_CHROME_SHOTGUN:
-			return std::make_pair<bool, int>(true, pWeapon->GetWeaponID());
+			return std::make_pair<bool, int>(gunOnly->GetValue(), pWeapon->GetWeaponID());
 		case WEAPON_MELEE:
 		case WEAPON_CHAINSAW:
-			return std::make_pair<bool, int>(melee->GetValue(), pWeapon->GetWeaponID());
+			return std::make_pair<bool, int>(meleeOnly->GetValue(), pWeapon->GetWeaponID());
 		default:
 			break;
 		}
@@ -261,7 +267,7 @@ namespace Client::Module::AimbotModule
 		IClientEntity *foundTarget = nullptr;
 		// collect all targets and find the best one (compare them by a score)
 		Vector clientViewAngles = Helper::rotationManager.getServerRotationVector();
-		if (Helper::rotationManager.DisabledRotation)
+		if (Helper::rotationManager.DisabledRotation || !hasLeftClickBefore)
 			I::EngineClient->GetViewAngles(clientViewAngles);
 		float currentScore = 1000.f;
 		const auto updateTarget = [&](IClientEntity *target, float fov, float distance) -> bool
@@ -339,6 +345,11 @@ namespace Client::Module::AimbotModule
 			}
 		}
 		if (foundTarget == nullptr)
+			// If no target was found, return an empty TargetInfo
+			// structure. This is necessary because the caller of this
+			// function may not check if the target is valid or not, so
+			// we need to make sure that the returned value is always
+			// valid.
 			return TargetInfo();
 		int classid = foundTarget->GetBaseEntity()->GetClientClass()->m_ClassID;
 		int hitgroup = GetHitbox(classid);

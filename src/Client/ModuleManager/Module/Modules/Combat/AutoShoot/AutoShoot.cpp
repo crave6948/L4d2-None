@@ -17,7 +17,8 @@ namespace Client::Module
 			if (cmd->buttons & IN_USE)
 				return false;
 
-			if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pWeapon->m_bInReload() || pLocal->m_isIncapacitated())
+			// if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pWeapon->m_bInReload() || pLocal->m_isIncapacitated())
+			if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pWeapon->m_bInReload())
 				return false;
 
 			// You could also check if the current spread is -1.0f and not run nospread I guess.

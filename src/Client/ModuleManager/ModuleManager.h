@@ -41,7 +41,7 @@ namespace Client::Module
 
 		void Init();
 		void onRender2D();
-		void onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal);
+		void onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal, C_TerrorWeapon* pWeapon);
 		void onFrameStageNotify(ClientFrameStage_t curStage);
 		void onKey();
 		Module *getFeature(std::string name);

@@ -43,7 +43,8 @@ namespace Client::Module
                 vManager.AddValue(sortModes);
                 vManager.AddValue(silent);
                 vManager.AddValue(switchDelay);
-                vManager.AddValue(melee);
+                vManager.AddValue(gunOnly);
+                vManager.AddValue(meleeOnly);
                 vManager.AddValue(meleeRange);
                 vManager.AddValue(meleePreLook);
                 vManager.AddValue(meleeFovTrigger);
@@ -67,7 +68,8 @@ namespace Client::Module
             V::ListValue *sortModes = new V::ListValue("Sort Mode", { "Distance", "Fov", "Both" }, "Both");
             V::BooleanValue *silent = new V::BooleanValue("Silent", true);
             V::NumberValue *switchDelay = new V::NumberValue("SwitchDelay", 400, 0, 1000, "ms");
-            V::BooleanValue *melee = new V::BooleanValue("Melee", true);
+            V::BooleanValue *gunOnly = new V::BooleanValue("Gun", true);
+            V::BooleanValue *meleeOnly = new V::BooleanValue("Melee", true);
             V::FloatValue *meleeRange = new V::FloatValue("MeleeRange", 150.f, 1.f, 400.f);
             V::FloatValue *meleePreLook = new V::FloatValue("MeleePreLookRange", 100.f, 0.f, 400.f);
             V::NumberValue *meleeFovTrigger = new V::NumberValue("MeleeFovTrigger", 10, 0, 180);
@@ -112,6 +114,7 @@ namespace Client::Module
                 {std::bind(&V::BooleanValue::GetValue, witch), EClientClass::Witch},
                 {std::bind(&V::BooleanValue::GetValue, tank), EClientClass::Tank}};
             float lastTime = 0;
+            bool isLeftClicking = false, hasLeftClickBefore = false;
             std::string className(int classId)
             {
                 switch (classId)

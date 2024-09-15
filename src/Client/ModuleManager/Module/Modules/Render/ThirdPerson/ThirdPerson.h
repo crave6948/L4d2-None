@@ -14,15 +14,18 @@ namespace Client::Module
 				vManager.AddValue(debug);
 				vManager.AddValue(distance);
 			};
+			void onEnabled() override;
 			void onRender2D() override;
 			void onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
+			void onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
 			void onFrameStageNotify(ClientFrameStage_t curStage) override;
 			V::BooleanValue *debug = new V::BooleanValue("Debug", false);
 			V::NumberValue *distance = new V::NumberValue("Distance", 50, 0, 180);
 			V::StringValue *keyValue = new V::StringValue("Key", "v");
-		private:
 			bool isThirdPerson = false;
-			Vector rotation = Vector(0, 0, 0);
+			bool isLocking = false;
+		private:
+			Vector rotation = Vector(0, 0, 0), lockRotation = Vector(0,0,0);
 		};
 	};
 };

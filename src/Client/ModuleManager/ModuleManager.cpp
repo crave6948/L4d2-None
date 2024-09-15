@@ -92,11 +92,10 @@ namespace Client::Module
         }
     }
 
-    void ModuleManager::onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal)
+    void ModuleManager::onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal, C_TerrorWeapon* pWeapon)
     {
         if (pLocal && !pLocal->deadflag())
         {
-            C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();
             Vector oldViewangles = cmd->viewangles;
             for (Module *mod : featurelist)
             {
@@ -154,7 +153,7 @@ namespace Client::Module
     {
         // bool isToggled = keyState & 1;
         // bool isDown = keyState & 0x8000;
-        if (GetAsyncKeyState(VK_HOME) & 0x8000 && keyTimeout <= 0)
+        if (GetAsyncKeyState(VK_HOME) & 1 && keyTimeout <= 0)
         {
             Client::client.fileManager.load();
             keyTimeout = 1;
@@ -166,7 +165,7 @@ namespace Client::Module
         }
         for (Module *mod : featurelist)
         {
-            if (GetAsyncKeyState(mod->getKey()) & 0x8000)
+            if (GetAsyncKeyState(mod->getKey()) & 1)
             {
                 if (!mod->ShouldToggle())
                     continue;
