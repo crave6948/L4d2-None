@@ -14,12 +14,12 @@ namespace Helper
     }
     void RotationManager::onUpdate()
     {
+        Vector viewAngles;
+        I::EngineClient->GetViewAngles(viewAngles);
+        Rotation viewAnglesRotation = Rotation(viewAngles.y, viewAngles.x);
         if (DisabledRotation || serverRotation.isZero())
         {
-            Vector viewAngles;
-            I::EngineClient->GetViewAngles(viewAngles);
-            Rotation rotation = Rotation(viewAngles.y, viewAngles.x);
-            serverRotation = rotation;
+            serverRotation = viewAnglesRotation;
             ticksToRotate = 0;
         }
         bool isReseting = false;
@@ -41,17 +41,19 @@ namespace Helper
             {
                 if (DisabledRotation)
                     return;
-                Vector viewAngles;
-                I::EngineClient->GetViewAngles(viewAngles);
-                Rotation rotation = Rotation(viewAngles.y, viewAngles.x);
-                serverRotation = calculateRotation(serverRotation, rotation, 0.f, false);
-                float rotationDifference = U::Math.GetFovBetween(serverRotation.toVector(), rotation.toVector());
-                if (rotationDifference <= 0.1f)
+                serverRotation = calculateRotation(serverRotation, viewAnglesRotation, 0.f, false);
+                float rotationDifference = U::Math.GetFovBetween(serverRotation.toVector(), viewAnglesRotation.toVector());
+                if (rotationDifference <= 0.f)
                     DisabledRotation = true;
             }
             else 
             {
                 serverRotation = calculateRotation(serverRotation, targetRotation, targetDistance, isInCrosshair);
+
+                const auto rotations = Client::client.moduleManager.rotations;
+                float rotationDifference = U::Math.GetFovBetween(serverRotation.toVector(), targetRotation.toVector());
+                if (rotationDifference <= 0.f)
+                    slowTicks = TIME_TO_TICKS(rotations->slowTicks->GetValue());
             }
             ticksToRotate = TIME_TO_TICKS(0.01);
         }
@@ -97,7 +99,12 @@ namespace Helper
             straightLineYaw = abs(angleDifference.yaw / rotationDifference) * turnSpeed.yawTurnSpeed;
             straightLinePitch = abs(angleDifference.pitch / rotationDifference) * turnSpeed.pitchTurnSpeed;
         }
-        Rotation rotation = clampRotation(Rotation(currentRotation.yaw + U::Math.coerceIn(angleDifference.yaw, -straightLineYaw, straightLineYaw), currentRotation.pitch + U::Math.coerceIn(angleDifference.pitch, -straightLinePitch, straightLinePitch)));
+        float slowFactor = 1.f;
+        if (slowTicks > 0) {
+            slowFactor = 0.3f;
+            slowTicks--;
+        }
+        Rotation rotation = clampRotation(Rotation(currentRotation.yaw + U::Math.coerceIn(angleDifference.yaw, -straightLineYaw, straightLineYaw) * slowFactor, currentRotation.pitch + U::Math.coerceIn(angleDifference.pitch, -straightLinePitch, straightLinePitch) * slowFactor));
         return rotation;
     }
     void RotationManager::ForceBack()

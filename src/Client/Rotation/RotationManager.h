@@ -28,6 +28,7 @@ namespace Helper
         int keepTicks = 0;
         float targetDistance = 0.0f;
         bool isInCrosshair = false;
+        int slowTicks = 0;
         int ticksToRotate = 0;
         float nextGassain(float min, float max)
         {
