@@ -13,12 +13,17 @@ namespace Client::Module
 				this->Create("FastMelee", true, VK_NUMPAD1, ModuleCategory::Combat);
 				vManager.AddValue(waitingTicks);
 			};
+			void RenderValueGui() override
+			{
+				IntegerSlider(waitingTicks);
+			}
 			V::NumberValue *waitingTicks = new V::NumberValue("WaitingTicks", 4, 0, 20);
 
 			bool shouldRun(C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal);
 			void onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
 			void onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
 			bool isSwaping();
+
 		private:
 			bool nextSwap = false, buttonstate = false;
 			// 0 = nothing, 1 = swap to primary or medkit grenade pills, 2 = swap to secondary

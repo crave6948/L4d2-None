@@ -17,6 +17,14 @@ namespace Client::Module
 				vManager.AddValue(keepForTicks);
 				vManager.AddValue(Debug);
 			};
+			void RenderValueGui() override
+			{
+				BooleanCheckBox(autoPunch);
+				BooleanCheckBox(onlySniper);
+				BooleanCheckBox(onlyShotgun);
+				IntegerSlider(keepForTicks);
+				BooleanCheckBox(Debug);
+			}
 			// autoPunch
 			V::BooleanValue *autoPunch = new V::BooleanValue("AutoPunch", true);
 			// onlySniper
@@ -27,7 +35,7 @@ namespace Client::Module
 			V::NumberValue *keepForTicks = new V::NumberValue("KeepForTicks", 10, 0, 20, "ticks");
 			// Debug
 			V::BooleanValue *Debug = new V::BooleanValue("Debug", false);
-			
+
 			void onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
 			void onRender2D() override;
 			bool getAutoPunch(C_TerrorWeapon *pWeapon);

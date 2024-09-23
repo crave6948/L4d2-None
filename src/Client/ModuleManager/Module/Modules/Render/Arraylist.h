@@ -13,8 +13,13 @@ namespace Client::Module
 				this->Create("ArrayList", true, VK_NUMPAD0, ModuleCategory::Visuals);
 				vManager.AddValue(rainbowEnabled);
 			};
+			void RenderValueGui() override
+			{
+				BooleanCheckBox(rainbowEnabled);
+			}
 			void onRender2D() override;
-			V::BooleanValue* rainbowEnabled = new V::BooleanValue("Rainbow", false);
+			V::BooleanValue *rainbowEnabled = new V::BooleanValue("Rainbow", false);
+
 		private:
 			Color HSVtoRGB(float H, float S, float V, int A = 255)
 			{

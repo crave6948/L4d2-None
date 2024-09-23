@@ -14,6 +14,11 @@ namespace Client::Module
 				vManager.AddValue(debug);
 				vManager.AddValue(distance);
 			};
+			void RenderValueGui() override
+			{
+				BooleanCheckBox(debug);
+				IntegerSlider(distance);
+			}
 			void onEnabled() override;
 			void onRender2D() override;
 			void onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
@@ -24,8 +29,9 @@ namespace Client::Module
 			V::StringValue *keyValue = new V::StringValue("Key", "v");
 			bool isThirdPerson = false;
 			bool isLocking = false;
+
 		private:
-			Vector rotation = Vector(0, 0, 0), lockRotation = Vector(0,0,0);
+			Vector rotation = Vector(0, 0, 0), lockRotation = Vector(0, 0, 0);
 		};
 	};
 };

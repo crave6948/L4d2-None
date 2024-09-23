@@ -63,9 +63,45 @@ namespace Client::Module
 
                 vManager.AddValue(debug);
             };
+            void RenderValueGui() override
+            {
+                BooleanCheckBox(gunOnly);
+                if (gunOnly->GetValue())
+                {
+                    FloatSlider(range);
+                    IntegerSlider(fov);
+                    ListBox(sortModes);
+                }
+
+                BooleanCheckBox(silent);
+                IntegerSlider(switchDelay);
+
+                BooleanCheckBox(meleeOnly);
+                if (meleeOnly->GetValue())
+                {
+                    FloatSlider(meleeRange);
+                    FloatSlider(meleePreLook);
+                    IntegerSlider(meleeFovTrigger);
+                    IntegerSlider(meleeFov);
+                }
+
+                BooleanCheckBox(infected);
+                BooleanCheckBox(boomer);
+                BooleanCheckBox(spitter);
+                BooleanCheckBox(charger);
+                BooleanCheckBox(smoker);
+                BooleanCheckBox(jockey);
+                BooleanCheckBox(hunter);
+                BooleanCheckBox(witch);
+                if (witch->GetValue())
+                    BooleanCheckBox(witchRage);
+                BooleanCheckBox(tank);
+
+                BooleanCheckBox(debug);
+            };
             V::FloatValue *range = new V::FloatValue("Range", 1400.f, 100.f, 2000.f);
             V::NumberValue *fov = new V::NumberValue("Fov", 180, 0, 180);
-            V::ListValue *sortModes = new V::ListValue("Sort Mode", { "Distance", "Fov", "Both" }, "Both");
+            V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
             V::BooleanValue *silent = new V::BooleanValue("Silent", true);
             V::NumberValue *switchDelay = new V::NumberValue("SwitchDelay", 400, 0, 1000, "ms");
             V::BooleanValue *gunOnly = new V::BooleanValue("Gun", true);

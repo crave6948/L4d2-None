@@ -12,6 +12,7 @@ namespace Client::Module
             {
                 this->Create("Rotations", false, 0, ModuleCategory::Visuals);
                 vManager.AddValue(keepTick);
+                vManager.AddValue(slowTicks);
                 vManager.AddValue(rotationModes);
                 // linear
                 vManager.AddValue(linear_horizontalTurnSpeed);
@@ -32,7 +33,33 @@ namespace Client::Module
                 vManager.AddValue(minimumTurnSpeedH); // minimum horizontal rotation speed
                 vManager.AddValue(minimumTurnSpeedV); // minimum vertical rotation speed
             };
+            void RenderValueGui() override {
+                FloatSlider(keepTick);
+                FloatSlider(slowTicks);
+                ListBox(rotationModes);
+                if (rotationModes->GetSelected() == "Linear")
+                {
+                    FloatRange(linear_horizontalTurnSpeed);
+                    FloatRange(linear_verticalTurnSpeed);
+                }else if (rotationModes->GetSelected() == "Sigmoid") {
+                    FloatRange(sigmoid_horizontalTurnSpeed);
+                    FloatRange(sigmoid_verticalTurnSpeed);
+                    FloatSlider(steepness);
+                    FloatSlider(midpoint);
+                }else if (rotationModes->GetSelected() == "Conditional") {
+                    FloatSlider(coefDistance);
+                    FloatSlider(coefDiffH);
+                    FloatSlider(coefDiffV);
+                    FloatSlider(coefCrosshairH);
+                    FloatSlider(coefCrosshairV);
+                    FloatSlider(interceptH);
+                    FloatSlider(interceptV);
+                    FloatSlider(minimumTurnSpeedH);
+                    FloatSlider(minimumTurnSpeedV);
+                }
+            };
             V::FloatValue *keepTick = new V::FloatValue("KeepTicks", 0.5f, 0.0f, 5.0f, "Second");
+            V::FloatValue *slowTicks = new V::FloatValue("SlowTicks", 0.05f, 0.0f, 1.0f, "Second");
             V::ListValue *rotationModes = new V::ListValue("Rotation Modes", std::vector<std::string>{"Linear", "Sigmoid", "Conditional"}, std::string("Sigmoid"));
             // Linear Values
             V::FloatRangeValue *linear_horizontalTurnSpeed = new V::FloatRangeValue("Linear-HorizontalTurnSpeed", V::Range(180.f, 180.f),

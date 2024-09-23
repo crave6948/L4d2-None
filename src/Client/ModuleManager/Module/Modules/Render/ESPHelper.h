@@ -24,22 +24,37 @@ namespace Client::Module
 				vManager.AddValue(witch);
 				vManager.AddValue(tank);
 			};
+			void RenderValueGui() override
+			{
+				ColorEditer(aimbotColor);
+				ColorEditer(aimbotInRangeColor);
+				BooleanCheckBox(infected);
+				BooleanCheckBox(boomer);
+				BooleanCheckBox(spitter);
+				BooleanCheckBox(charger);
+				BooleanCheckBox(smoker);
+				BooleanCheckBox(jockey);
+				BooleanCheckBox(hunter);
+				BooleanCheckBox(witch);
+				BooleanCheckBox(tank);
+			}
 			void onRender2D() override;
 			// color of aimbotesp
-			V::ColorValue* aimbotColor = new V::ColorValue("Aimbot ESP Color", 44, 100, 41, 1);
-			V::ColorValue* aimbotInRangeColor = new V::ColorValue("Aimbot In Range Color", 41, 85, 100, 1);
+			V::ColorValue *aimbotColor = new V::ColorValue("Aimbot ESP Color", 44, 100, 41, 1);
+			V::ColorValue *aimbotInRangeColor = new V::ColorValue("Aimbot In Range Color", 41, 85, 100, 1);
 			// infected, special infected, witch, tank
-			V::BooleanValue* infected = new V::BooleanValue("Infected", true);
+			V::BooleanValue *infected = new V::BooleanValue("Infected", true);
 			// specialInfected has boomer, spitter, charger, smoker, jockey, hunter
-			V::BooleanValue* boomer = new V::BooleanValue("Boomer", true);
-			V::BooleanValue* spitter = new V::BooleanValue("Spitter", true);
-			V::BooleanValue* charger = new V::BooleanValue("Charger", true);
-			V::BooleanValue* smoker = new V::BooleanValue("Smoker", true);
-			V::BooleanValue* jockey = new V::BooleanValue("Jockey", true);
-			V::BooleanValue* hunter = new V::BooleanValue("Hunter", true); 
+			V::BooleanValue *boomer = new V::BooleanValue("Boomer", true);
+			V::BooleanValue *spitter = new V::BooleanValue("Spitter", true);
+			V::BooleanValue *charger = new V::BooleanValue("Charger", true);
+			V::BooleanValue *smoker = new V::BooleanValue("Smoker", true);
+			V::BooleanValue *jockey = new V::BooleanValue("Jockey", true);
+			V::BooleanValue *hunter = new V::BooleanValue("Hunter", true);
 			// witch and tank are separate from specialInfected value
-			V::BooleanValue* witch = new V::BooleanValue("Witch", true);
-			V::BooleanValue* tank = new V::BooleanValue("Tank", true);
+			V::BooleanValue *witch = new V::BooleanValue("Witch", true);
+			V::BooleanValue *tank = new V::BooleanValue("Tank", true);
+
 		private:
 			void drawESP(C_BaseEntity *pBaseEntity, int hit);
 			std::vector<std::pair<std::function<bool()>, EClientClass>> entityTypes = {

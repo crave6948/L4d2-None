@@ -28,22 +28,25 @@ namespace Client::Module
         }
         void ThirdPerson::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
-            if (GetAsyncKeyState(0x55) & 1)
+            static bool originalThirdPersonState = false;
+            if (GetAsyncKeyState(0x43) & 1)
             {
                 isLocking = !isLocking;
                 if (isLocking)
                 {
                     lockRotation = cmd->viewangles;
-                    isThirdPerson = true;
+                    originalThirdPersonState = isThirdPerson;
+                    if (!isThirdPerson)
+                        isThirdPerson = true;
                 }else {
-                    isThirdPerson = false;
+                    isThirdPerson = originalThirdPersonState;
+                    I::EngineClient->SetViewAngles(lockRotation);
+                    Helper::rotationManager.DisabledRotation = true;
                 }
             }
             if (isLocking)
             {
-                Helper::Rotation rot;
-                rot.toRotation(lockRotation);
-                Helper::rotationManager.moveTo(rot, 0, true);
+                Helper::rotationManager.moveTo(Helper::Rotation().toRotation(lockRotation), 1, false);
             }
         }
         void ThirdPerson::onFrameStageNotify(ClientFrameStage_t curStage)

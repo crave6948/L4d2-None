@@ -199,34 +199,7 @@ void Client::Menu::AddContextToMenu()
                 {
                     ImGui::Text("%s", name.c_str());
                     ImGui::Checkbox("Enabled", &module->state);
-                    for (auto value : module->vManager.GetValues())
-                    {
-                        if (auto booleanValue = dynamic_cast<V::BooleanValue *>(value))
-                        {
-                            ImGui::Checkbox(booleanValue->GetName().c_str(), &booleanValue->m_Value);
-                        }
-                        else if (auto listValue = dynamic_cast<V::ListValue *>(value))
-                        {
-                            AddListBox(listValue);
-                        }
-                        else if (auto numberValue = dynamic_cast<V::NumberValue *>(value))
-                        {
-                            ImGui::SliderInt(numberValue->GetName().c_str(), &numberValue->m_Value, numberValue->GetMin(), numberValue->GetMax(), ("%d" + numberValue->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
-                        }
-                        else if (auto floatValue = dynamic_cast<V::FloatValue *>(value))
-                        {
-                            ImGui::SliderFloat(floatValue->GetName().c_str(), &floatValue->m_Value, floatValue->GetMin(), floatValue->GetMax(), ("%0.2f" + floatValue->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
-                        }
-                        else if (auto floatRangeValue = dynamic_cast<V::FloatRangeValue *>(value))
-                        {
-                            auto [min, max] = floatRangeValue->GetMaximumRange();
-                            ImGui::DragFloatRange2(floatRangeValue->GetName().c_str(), &floatRangeValue->m_Value.min, &floatRangeValue->m_Value.max, 0.05F, min, max, ("Min: %.2f" + floatRangeValue->GetFormat()).c_str(), ("Max: %.2f" + floatRangeValue->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
-                        }
-                        else if (auto colorValue = dynamic_cast<V::ColorValue *>(value))
-                        {
-                            ImGui::ColorEdit4(colorValue->GetName().c_str(), colorValue->color, ImGuiColorEditFlags_NoInputs);
-                        }
-                    }
+                    module->RenderValueGui();
                     ImGui::EndTabItem();
                 }
             }

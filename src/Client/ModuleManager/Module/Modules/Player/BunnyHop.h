@@ -14,6 +14,12 @@ namespace Client::Module
 				vManager.AddValue(DisableLookDown);
 				vManager.AddValue(Debug);
 			};
+			void RenderValueGui() override
+			{
+				ListBox(BhopType);
+				BooleanCheckBox(DisableLookDown);
+				BooleanCheckBox(Debug);
+			}
 			V::ListValue *BhopType = new V::ListValue("BhopType", {"Normal", "Legit", "Rage"}, "Normal");
 			V::BooleanValue *DisableLookDown = new V::BooleanValue("Disable When Look Down", false);
 			V::BooleanValue *Debug = new V::BooleanValue("Debug", false);

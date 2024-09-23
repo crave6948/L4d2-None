@@ -11,7 +11,6 @@ namespace Client::Module::AimbotModule
 		if (!isLeftClicking || !ShouldRun(pLocal, pWeapon, cmd))
 		{
 			targetInfo = TargetInfo();
-			Helper::rotationManager.ForceBack();
 			lastTime = 0;
 			hasLeftClickBefore = false;
 			return;
@@ -115,6 +114,9 @@ namespace Client::Module::AimbotModule
 		{
 			return false;
 		}
+		auto thirdPerson = Client::client.moduleManager.thirdPerson;
+		if (thirdPerson->getEnabled() && thirdPerson->isLocking)
+			return false;
 
 		if (cmd->buttons & IN_USE)
 			return false;
@@ -290,10 +292,13 @@ namespace Client::Module::AimbotModule
 			{
 				return HITGROUP_CHEST;
 			}
-			// if (classType == EClientClass::Infected)
-			// {
-			// 	return HITGROUP_CHEST;
-			// }
+			if (useMelee)
+			{
+				if (classType == EClientClass::Infected)
+				{
+					return HITGROUP_CHEST;
+				}
+			}
 			return HITGROUP_HEAD;
 		};
 		const auto GetFovDistance = [&, clientViewAngles](IClientEntity *target, int classType) -> std::pair<float, float>
