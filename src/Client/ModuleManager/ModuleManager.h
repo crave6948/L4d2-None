@@ -2,7 +2,6 @@
 #include "Module/Modules/Player/BunnyHop.h"
 
 #include "Module/Modules/Render/Arraylist.h"
-#include "Module/Modules/Render/ClickGui/ClickGuiModule.h"
 #include "Module/Modules/Render/ESPHelper.h"
 #include "Module/Modules/Render/ThirdPerson/ThirdPerson.h"
 #include "Module/Modules/Render/Rotation/Rotations.h"
@@ -33,7 +32,6 @@ namespace Client::Module
 
 		ArraylistModule::Arraylist *arraylist = new ArraylistModule::Arraylist();
 		ESPHelperModule::ESPHelper *espHelper = new ESPHelperModule::ESPHelper();
-		ClickGuiModule::ClickGui *clickGui = new ClickGuiModule::ClickGui();
 		ThirdPersonModule::ThirdPerson *thirdPerson = new ThirdPersonModule::ThirdPerson();
 		RotationsModule::Rotations *rotations = new RotationsModule::Rotations();
 

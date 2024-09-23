@@ -14,17 +14,16 @@ namespace Client::Module
 
     ModuleManager::~ModuleManager()
     {
-        // delete bhop;
-        // delete aimbot;
-        // delete noSpread;
-        // delete autoShoot;
-        // delete fastMelee;
-        // delete arraylist;
-        // delete espHelper;
-        // delete clickGui;
-        // delete thirdPerson;
-        // delete rotations;
-        // delete fontManager;
+        delete bhop;
+        delete aimbot;
+        delete noSpread;
+        delete autoShoot;
+        delete fastMelee;
+        delete arraylist;
+        delete espHelper;
+        delete thirdPerson;
+        delete rotations;
+        delete fontManager;
     }
 
     void ModuleManager::Init()
@@ -38,7 +37,6 @@ namespace Client::Module
 
         featurelist.push_back(arraylist);
         featurelist.push_back(espHelper);
-        featurelist.push_back(clickGui);
         featurelist.push_back(thirdPerson);
         featurelist.push_back(rotations);
 
@@ -137,6 +135,9 @@ namespace Client::Module
                     continue;
                 mod->onPostPrediction(cmd, pWeapon, pLocal);
             }
+            auto thirdPerson = Client::client.moduleManager.thirdPerson;
+            if (thirdPerson->getEnabled() && thirdPerson->isLocking)
+                oldViewangles = cmd->viewangles;
             G::Util.FixMovement(oldViewangles, cmd);
         }
     }
