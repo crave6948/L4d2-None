@@ -11,9 +11,9 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 #   cmake_policy(SET CMP0126 NEW)
 # endif()
 # Add /EHsc flag for MSVC globally
-# if (MSVC)
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-# endif()
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif()
 
 # Source files
 # Set the source files directory

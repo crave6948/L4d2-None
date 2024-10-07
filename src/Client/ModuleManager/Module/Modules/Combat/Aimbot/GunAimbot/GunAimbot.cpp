@@ -1,19 +1,19 @@
-#pragma once
 #include "GunAimbot.h"
 #include "../../../../../../Rotation/RotationManager.h"
 #include "../../../../../../None.h"
 
 #include "../Aimbot.h"
 
-using namespace Client::Module::AimbotModule;
+// using namespace Client::Module::AimbotModule;
 namespace Client::Module::AimbotModule::GunAimbotModule
 {
     void GunAimbot::registerValues()
     {
         auto aimbot = Client::client.moduleManager.aimbot;
-        aimbot->vManager.AddValue(this->range);
+        aimbot->vManager.AddValue(this->gunRange);
         aimbot->vManager.AddValue(this->gunFov);
         aimbot->vManager.AddValue(this->gunOnly);
+        aimbot->vManager.AddValue(this->gunFovTrigger);
     }
 
     void GunAimbot::RenderValueGui()
@@ -22,8 +22,9 @@ namespace Client::Module::AimbotModule::GunAimbotModule
         aimbot->BooleanCheckBox(this->gunOnly);
         if (this->gunOnly->GetValue())
         {
-            aimbot->FloatSlider(this->range);
+            aimbot->FloatSlider(this->gunRange);
             aimbot->IntegerSlider(this->gunFov);
+            aimbot->IntegerSlider(this->gunFovTrigger);
         }
     }
 
@@ -44,13 +45,23 @@ namespace Client::Module::AimbotModule::GunAimbotModule
 
     void GunAimbot::onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
     {
-        auto aimbot = Client::client.moduleManager.aimbot;
-        bool isInCrosshair = isInCrossHair(cmd, pLocal, aimbot->targetInfo.target);
         if (cmd->buttons & IN_ATTACK)
         {
-            if (!isInCrosshair)
+            auto aimbot = Client::client.moduleManager.aimbot;
+            bool isInCrosshair = isInCrossHair(cmd, pLocal, aimbot->targetInfo.target);
+            if (this->gunTrigger->GetValue())
             {
-                cmd->buttons &= ~IN_ATTACK;
+                float distance = pLocal->Weapon_ShootPosition().DistTo(aimbot->targetInfo.targetPosition);
+                Vector serverSide = Helper::rotationManager.getServerRotationVector();
+                float fov = U::Math.GetFovBetween(serverSide, aimbot->targetInfo.aimRotation.toVector());
+                if (fov > gunFovTrigger->GetValue() || distance > gunRange->GetValue())
+                    cmd->buttons &= ~IN_ATTACK;
+            }
+            else {
+                if (!isInCrosshair)
+                {
+                    cmd->buttons &= ~IN_ATTACK;
+                }
             }
         }
     }
@@ -64,7 +75,7 @@ namespace Client::Module::AimbotModule::GunAimbotModule
     TargetInfo GunAimbot::GetTarget(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd)
     {
         auto aimbot = Client::client.moduleManager.aimbot;
-        float aimRange = this->range->GetValue(), aimFov = gunFov->GetValue();
+        float aimRange = this->gunRange->GetValue(), aimFov = gunFov->GetValue();
         IClientEntity *foundTarget = nullptr;
         // collect all targets and find the best one (compare them by a score)
         Vector clientViewAngles = Helper::rotationManager.getServerRotationVector();
@@ -177,7 +188,7 @@ namespace Client::Module::AimbotModule::GunAimbotModule
         // check if target is out of range
         float distance = pLocal->Weapon_ShootPosition().DistTo(targetPosition);
         auto [should, weaponId] = aimbot->CheckWeapon(pWeapon);
-        float aimRange = range->GetValue(), aimfov = gunFov->GetValue();
+        float aimRange = gunRange->GetValue(), aimfov = gunFov->GetValue();
         if (distance > aimRange)
             return true;
         // check if target is outside FOV
@@ -198,7 +209,7 @@ namespace Client::Module::AimbotModule::GunAimbotModule
         Vector vec = U::Math.AngleVectors(Helper::rotationManager.getServerRotationVector());
         CTraceFilterHitscan filter{pLocal};
         bool shouldhit = false;
-        if (auto pHit = G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * range->GetValue()), &filter))
+        if (auto pHit = G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * gunRange->GetValue()), &filter))
         {
             if (pHit->entindex() != target->entindex())
             {

@@ -1,4 +1,3 @@
-#pragma once
 #include "Aimbot.h"
 #include <functional>
 #include "../../../../../Rotation/RotationManager.h"
@@ -186,3 +185,4 @@ namespace Client::Module::AimbotModule
 		return std::make_pair<bool, int>(false, 9999);
 	}
 }
+#undef doGunOrMelee
