@@ -11,19 +11,17 @@ namespace Client::Module
         class Aimbot : public Module
         {
         public:
-            GunAimbotModule::GunAimbot *gunAimbot;
-            MeleeAimbotModule::MeleeAimbot *meleeAimbot;
+            GunAimbotModule::GunAimbot *gunAimbot = new GunAimbotModule::GunAimbot();
+            MeleeAimbotModule::MeleeAimbot *meleeAimbot = new MeleeAimbotModule::MeleeAimbot();
             Aimbot()
             {
                 this->Create("Aimbot", true, VK_NUMPAD7, ModuleCategory::Combat);
-                gunAimbot = new GunAimbotModule::GunAimbot();
                 gunAimbot->registerValues();
 
                 vManager.AddValue(sortModes);
                 vManager.AddValue(silent);
                 vManager.AddValue(switchDelay);
 
-                meleeAimbot = new MeleeAimbotModule::MeleeAimbot();
                 meleeAimbot->registerValues();
 
                 vManager.AddValue(infected);
