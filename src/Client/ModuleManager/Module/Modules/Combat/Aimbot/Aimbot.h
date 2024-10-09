@@ -38,18 +38,19 @@ namespace Client::Module
             Aimbot()
             {
                 this->Create("Aimbot", true, VK_NUMPAD7, ModuleCategory::Combat);
+                vManager.AddValue(gunOnly);
                 vManager.AddValue(range);
                 vManager.AddValue(fov);
-                vManager.AddValue(sortModes);
-                vManager.AddValue(silent);
-                vManager.AddValue(switchDelay);
-                vManager.AddValue(gunOnly);
+
                 vManager.AddValue(meleeOnly);
                 vManager.AddValue(meleeRange);
                 vManager.AddValue(meleePreLook);
                 vManager.AddValue(meleeFovTrigger);
                 vManager.AddValue(meleeFov);
 
+                vManager.AddValue(sortModes);
+                vManager.AddValue(silent);
+                vManager.AddValue(switchDelay);
                 vManager.AddValue(infected);
                 vManager.AddValue(boomer);
                 vManager.AddValue(spitter);
@@ -70,11 +71,7 @@ namespace Client::Module
                 {
                     FloatSlider(range);
                     IntegerSlider(fov);
-                    ListBox(sortModes);
                 }
-
-                BooleanCheckBox(silent);
-                IntegerSlider(switchDelay);
 
                 BooleanCheckBox(meleeOnly);
                 if (meleeOnly->GetValue())
@@ -85,6 +82,9 @@ namespace Client::Module
                     IntegerSlider(meleeFov);
                 }
 
+                ListBox(sortModes);
+                BooleanCheckBox(silent);
+                IntegerSlider(switchDelay);
                 BooleanCheckBox(infected);
                 BooleanCheckBox(boomer);
                 BooleanCheckBox(spitter);
@@ -99,17 +99,19 @@ namespace Client::Module
 
                 BooleanCheckBox(debug);
             };
+            V::BooleanValue *gunOnly = new V::BooleanValue("Gun", true);
             V::FloatValue *range = new V::FloatValue("Range", 1400.f, 100.f, 2000.f);
             V::NumberValue *fov = new V::NumberValue("Fov", 180, 0, 180);
-            V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
-            V::BooleanValue *silent = new V::BooleanValue("Silent", true);
-            V::NumberValue *switchDelay = new V::NumberValue("SwitchDelay", 400, 0, 1000, "ms");
-            V::BooleanValue *gunOnly = new V::BooleanValue("Gun", true);
+            
             V::BooleanValue *meleeOnly = new V::BooleanValue("Melee", true);
             V::FloatValue *meleeRange = new V::FloatValue("MeleeRange", 150.f, 1.f, 400.f);
             V::FloatValue *meleePreLook = new V::FloatValue("MeleePreLookRange", 100.f, 0.f, 400.f);
             V::NumberValue *meleeFovTrigger = new V::NumberValue("MeleeFovTrigger", 10, 0, 180);
             V::NumberValue *meleeFov = new V::NumberValue("MeleeFov", 180, 0, 180);
+
+            V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
+            V::BooleanValue *silent = new V::BooleanValue("Silent", true);
+            V::NumberValue *switchDelay = new V::NumberValue("SwitchDelay", 400, 0, 1000, "ms");
             // infected, special infected, witch, tank
             V::BooleanValue *infected = new V::BooleanValue("Infected", true);
             // specialInfected has boomer, spitter, charger, smoker, jockey, hunter
