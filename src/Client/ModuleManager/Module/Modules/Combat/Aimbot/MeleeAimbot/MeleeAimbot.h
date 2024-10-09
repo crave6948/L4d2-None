@@ -1,6 +1,6 @@
 #pragma once
 #include "../GunAimbot/GunAimbot.h"
-// using namespace Client::Module::AimbotModule;
+using namespace Client::Module::AimbotModule;
 namespace Client::Module::AimbotModule::MeleeAimbotModule
 {
     class MeleeAimbot

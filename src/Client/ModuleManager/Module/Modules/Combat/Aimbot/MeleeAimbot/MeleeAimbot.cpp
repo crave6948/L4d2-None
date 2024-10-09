@@ -1,7 +1,8 @@
+#pragma once
 #include "MeleeAimbot.h"
 #include "../../../../../../Rotation/RotationManager.h"
 #include "../../../../../../None.h"
-// using namespace Client::Module::AimbotModule;
+using namespace Client::Module::AimbotModule;
 namespace Client::Module::AimbotModule::MeleeAimbotModule
 {
     void MeleeAimbot::registerValues()
