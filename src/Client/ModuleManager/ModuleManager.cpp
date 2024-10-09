@@ -62,6 +62,14 @@ namespace Client::Module
         C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
         if (!Helper::rotationManager.getServerRotationVector().IsZero())
         {
+            Vector vec = U::Math.AngleVectors(Helper::rotationManager.getServerRotationVector());
+            CGameTrace trace;
+            CTraceFilterHitAll filter{pLocal};
+            G::Util.Trace(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * 1400.0f), (MASK_SHOT | CONTENTS_GRATE), &filter, &trace);
+            Vector vViewAngleOnWorld = trace.endpos;
+            Vector screen;
+            G::Util.W2S(vViewAngleOnWorld, screen);
+
             int screenW = G::Draw.m_nScreenW, screenH = G::Draw.m_nScreenH;
 
             if (Helper::rotationManager.DisabledRotation)
@@ -75,14 +83,6 @@ namespace Client::Module
             }
             else
             {
-                Vector vec = U::Math.AngleVectors(Helper::rotationManager.getServerRotationVector());
-                CGameTrace trace;
-                CTraceFilterHitAll filter{pLocal};
-                G::Util.Trace(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * 400.0f), (MASK_SHOT | CONTENTS_GRATE), &filter, &trace);
-                Vector vViewAngleOnWorld = trace.endpos;
-                Vector screen;
-                G::Util.W2S(vViewAngleOnWorld, screen);
-
                 G::Draw.Line(screen.x, screen.y, screen.x - 4, screen.y + 4, Color(255, 255, 255, 255));
                 G::Draw.Line(screen.x, screen.y, screen.x + 4, screen.y + 4, Color(255, 255, 255, 255));
             }

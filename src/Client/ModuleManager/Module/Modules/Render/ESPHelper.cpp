@@ -16,7 +16,7 @@ namespace Client::Module
 			IClientEntity *target = aimbot->targetInfo.target;
 
 			float distance = pLocal->Weapon_ShootPosition().DistTo(EntityPosition);
-			if (distance <= aimbot->gunAimbot->range->GetValue())
+			if (distance <= aimbot->range->GetValue())
 			{
 				auto [r, g, b, a] = this->aimbotInRangeColor->GetValue();
 				r = round(r * 255);
