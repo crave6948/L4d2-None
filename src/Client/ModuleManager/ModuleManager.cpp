@@ -136,7 +136,7 @@ namespace Client::Module
                 mod->onPostPrediction(cmd, pWeapon, pLocal);
             }
             auto thirdPerson = Client::client.moduleManager.thirdPerson;
-            if (thirdPerson->getEnabled() && thirdPerson->isLocking)
+            if (thirdPerson->getEnabled() && thirdPerson->isLocking && !thirdPerson->freeStrafe->GetValue())
                 oldViewangles = cmd->viewangles;
             G::Util.FixMovement(oldViewangles, cmd);
         }
