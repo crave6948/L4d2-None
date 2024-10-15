@@ -11,12 +11,13 @@ namespace Client::Module::AimbotModule
 		if (!isLeftClicking || !ShouldRun(pLocal, pWeapon, cmd))
 		{
 			targetInfo = TargetInfo();
-			lastTime = 0;
+			lastSwitch = 0;
+			lastUpdate = 0;
 			hasLeftClickBefore = false;
 			return;
 		}
 		bool allowedToSwitch = false;
-		if (I::GlobalVars->realtime - lastTime >= switchDelay->GetValue() / 1000.f)
+		if (I::GlobalVars->realtime - lastSwitch >= switchDelay->GetValue() / 1000.f)
 		{
 			allowedToSwitch = true;
 		}
@@ -24,7 +25,7 @@ namespace Client::Module::AimbotModule
 		{
 			targetInfo = TargetInfo();
 			targetInfo = GetTarget(pLocal, pWeapon, cmd);
-			lastTime = I::GlobalVars->realtime;
+			lastSwitch = I::GlobalVars->realtime;
 		}
 		if (targetInfo.target == nullptr)
 		{
@@ -36,8 +37,12 @@ namespace Client::Module::AimbotModule
 			return;
 		Vector hitbox = targetInfo.target->As<C_BaseAnimating *>()->GetHitboxPositionByGroup(targetInfo.hitGroup);
 		Vector aimVector = U::Math.GetAngleToPosition(pLocal->Weapon_ShootPosition(), hitbox);
-		targetInfo.aimRotation = Helper::Rotation().toRotation(aimVector);
-		targetInfo.targetPosition = hitbox;
+		if (I::GlobalVars->realtime - lastUpdate >= updateDelay->GetValue() / 1000.f)
+		{
+			targetInfo.aimRotation = Helper::Rotation().toRotation(aimVector);
+			targetInfo.targetPosition = hitbox;
+			lastUpdate = I::GlobalVars->realtime;
+		}
 		float distance = pLocal->Weapon_ShootPosition().DistTo(targetInfo.targetPosition);
 		bool isInCrosshair = isInCrossHair(cmd, pLocal, targetInfo.target);
 
@@ -46,14 +51,14 @@ namespace Client::Module::AimbotModule
 
 		if (cmd->buttons & IN_ATTACK)
 		{
+			Vector serverSide = Helper::rotationManager.getServerRotationVector();
+			float fov = U::Math.GetFovBetween(serverSide, targetInfo.aimRotation.toVector());
 			if (isMelee(weaponId))
 			{
-				Vector serverSide = Helper::rotationManager.getServerRotationVector();
-				float fov = U::Math.GetFovBetween(serverSide, targetInfo.aimRotation.toVector());
 				if (fov > meleeFovTrigger->GetValue() || distance > meleeRange->GetValue())
 					cmd->buttons &= ~IN_ATTACK;
 			}
-			else if (!isInCrosshair)
+			else if (!fov > gunFovTrigger->GetValue() || distance > gunRange->GetValue())
 			{
 				cmd->buttons &= ~IN_ATTACK;
 			}
@@ -78,7 +83,7 @@ namespace Client::Module::AimbotModule
 			return;
 		}
 		C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
-		float flR = tanf(DEG2RAD(fov->GetValue()) / 2) / tanf(DEG2RAD(pLocal->IsZoomed() ? 30 : 110) / 2) * G::Draw.m_nScreenW;
+		float flR = tanf(DEG2RAD(gunFov->GetValue()) / 2) / tanf(DEG2RAD(pLocal->IsZoomed() ? 30 : 110) / 2) * G::Draw.m_nScreenW;
 		G::Draw.OutlinedCircle(G::Draw.m_nScreenW / 2, G::Draw.m_nScreenH / 2, flR, 32, Color(178, 190, 181, 255));
 		if (!debug->GetValue())
 			return;
@@ -99,7 +104,8 @@ namespace Client::Module::AimbotModule
 	void Aimbot::onEnabled()
 	{
 		targetInfo = TargetInfo();
-		lastTime = I::GlobalVars->realtime;
+		lastSwitch = I::GlobalVars->realtime;
+		lastUpdate = I::GlobalVars->realtime;
 		isLeftClicking = false;
 		hasLeftClickBefore = false;
 	}
@@ -128,7 +134,7 @@ namespace Client::Module::AimbotModule
 		// You could also check if the current spread is -1.0f and not run nospread I guess.
 		// But since I wanted to filter out shotungs and just be sure that it isnt ran for other stuff I check the weaponid.
 		auto [should, _] = CheckWeapon(pWeapon);
-		
+
 		// check if fastmelee is swaping items
 		auto fastMelee = Client::client.moduleManager.fastMelee;
 		if (meleeOnly->GetValue() && fastMelee->getEnabled() && fastMelee->isSwaping())
@@ -178,7 +184,7 @@ namespace Client::Module::AimbotModule
 		Vector vec = U::Math.AngleVectors(Helper::rotationManager.getServerRotationVector());
 		CTraceFilterHitscan filter{pLocal};
 		bool shouldhit = false;
-		if (auto pHit = G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * range->GetValue()), &filter))
+		if (auto pHit = G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * gunRange->GetValue()), &filter))
 		{
 			if (pHit->entindex() != target->entindex())
 			{
@@ -237,9 +243,10 @@ namespace Client::Module::AimbotModule
 		// check if target is out of range
 		float distance = pLocal->Weapon_ShootPosition().DistTo(targetPosition);
 		auto [should, weaponId] = CheckWeapon(pWeapon);
-		float aimRange = range->GetValue(), aimfov = fov->GetValue();
+		float aimRange = gunRange->GetValue(), aimfov = gunFov->GetValue();
 		bool useMelee = isMelee(weaponId);
-		if (useMelee) {
+		if (useMelee)
+		{
 			aimRange = meleeRange->GetValue() + meleePreLook->GetValue();
 			aimfov = meleeFov->GetValue();
 		}
@@ -261,8 +268,9 @@ namespace Client::Module::AimbotModule
 	{
 		auto [should, weaponId] = CheckWeapon(pWeapon);
 		bool useMelee = isMelee(weaponId);
-		float aimRange = this->range->GetValue(), aimFov = fov->GetValue();
-		if (useMelee) {
+		float aimRange = gunRange->GetValue(), aimFov = gunFov->GetValue();
+		if (useMelee)
+		{
 			aimRange = meleeRange->GetValue() + meleePreLook->GetValue();
 			aimFov = meleeFov->GetValue();
 		}

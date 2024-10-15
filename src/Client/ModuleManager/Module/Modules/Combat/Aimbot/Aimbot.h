@@ -39,8 +39,9 @@ namespace Client::Module
             {
                 this->Create("Aimbot", true, VK_NUMPAD7, ModuleCategory::Combat);
                 vManager.AddValue(gunOnly);
-                vManager.AddValue(range);
-                vManager.AddValue(fov);
+                vManager.AddValue(gunRange);
+                vManager.AddValue(gunFov);
+                vManager.AddValue(gunFovTrigger);
 
                 vManager.AddValue(meleeOnly);
                 vManager.AddValue(meleeRange);
@@ -51,6 +52,8 @@ namespace Client::Module
                 vManager.AddValue(sortModes);
                 vManager.AddValue(silent);
                 vManager.AddValue(switchDelay);
+                vManager.AddValue(updateDelay);
+
                 vManager.AddValue(infected);
                 vManager.AddValue(boomer);
                 vManager.AddValue(spitter);
@@ -69,8 +72,9 @@ namespace Client::Module
                 BooleanCheckBox(gunOnly);
                 if (gunOnly->GetValue())
                 {
-                    FloatSlider(range);
-                    IntegerSlider(fov);
+                    FloatSlider(gunRange);
+                    IntegerSlider(gunFov);
+                    IntegerSlider(gunFovTrigger);
                 }
 
                 BooleanCheckBox(meleeOnly);
@@ -85,6 +89,8 @@ namespace Client::Module
                 ListBox(sortModes);
                 BooleanCheckBox(silent);
                 IntegerSlider(switchDelay);
+                IntegerSlider(updateDelay);
+
                 BooleanCheckBox(infected);
                 BooleanCheckBox(boomer);
                 BooleanCheckBox(spitter);
@@ -100,8 +106,9 @@ namespace Client::Module
                 BooleanCheckBox(debug);
             };
             V::BooleanValue *gunOnly = new V::BooleanValue("Gun", true);
-            V::FloatValue *range = new V::FloatValue("Range", 1400.f, 100.f, 2000.f);
-            V::NumberValue *fov = new V::NumberValue("Fov", 180, 0, 180);
+            V::FloatValue *gunRange = new V::FloatValue("Range", 1400.f, 100.f, 2000.f);
+            V::NumberValue *gunFov = new V::NumberValue("Fov", 180, 0, 180);
+            V::NumberValue *gunFovTrigger = new V::NumberValue("GunFovTrigger", 10, 0, 180);
             
             V::BooleanValue *meleeOnly = new V::BooleanValue("Melee", true);
             V::FloatValue *meleeRange = new V::FloatValue("MeleeRange", 150.f, 1.f, 400.f);
@@ -112,6 +119,8 @@ namespace Client::Module
             V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
             V::BooleanValue *silent = new V::BooleanValue("Silent", true);
             V::NumberValue *switchDelay = new V::NumberValue("SwitchDelay", 400, 0, 1000, "ms");
+            V::NumberValue *updateDelay = new V::NumberValue("UpdateDelay", 200, 0, 1000, "ms");
+
             // infected, special infected, witch, tank
             V::BooleanValue *infected = new V::BooleanValue("Infected", true);
             // specialInfected has boomer, spitter, charger, smoker, jockey, hunter
@@ -151,7 +160,7 @@ namespace Client::Module
                 {std::bind(&V::BooleanValue::GetValue, hunter), EClientClass::Hunter},
                 {std::bind(&V::BooleanValue::GetValue, witch), EClientClass::Witch},
                 {std::bind(&V::BooleanValue::GetValue, tank), EClientClass::Tank}};
-            float lastTime = 0;
+            float lastSwitch = 0, lastUpdate = 0;
             bool isLeftClicking = false, hasLeftClickBefore = false;
             std::string className(int classId)
             {
