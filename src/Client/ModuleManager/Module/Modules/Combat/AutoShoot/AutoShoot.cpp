@@ -18,12 +18,14 @@ namespace Client::Module
 				return false;
 
 			// if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pWeapon->m_bInReload() || pLocal->m_isIncapacitated())
-			if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pWeapon->m_bInReload())
+			if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue())
 				return false;
 
 			// You could also check if the current spread is -1.0f and not run nospread I guess.
 			// But since I wanted to filter out shotungs and just be sure that it isnt ran for other stuff I check the weaponid.
 			if (!pWeapon)
+				return false;
+			if (pWeapon->m_bInReload())
 				return false;
 			switch (pWeapon->GetWeaponID())
 			{
@@ -55,18 +57,19 @@ namespace Client::Module
 			}
 			if (nextPunch)
 			{
-				bool attack = pWeapon->CanSecondaryAttack(-0.2);
-				if (attack)
+				nextPunch = false;
+				bool attack = pWeapon->CanSecondaryAttack();
+				if (attack && !(cmd->buttons & IN_ATTACK2))
 				{
 					cmd->buttons |= IN_ATTACK2;
 				}
-				nextPunch = false;
 			}
 			if (cmd->buttons & IN_ATTACK)
 			{
 				cmd->buttons &= ~IN_ATTACK;
-				bool attack = pWeapon->CanPrimaryAttack(-0.2);
-				if (!attack) {
+				bool attack = pWeapon->CanPrimaryAttack();
+				if (!attack)
+				{
 					nextPunch = false;
 				}
 				if (attack && keepClicks <= 0)
@@ -75,11 +78,15 @@ namespace Client::Module
 					if (getAutoPunch(pWeapon))
 						nextPunch = true;
 					cmd->buttons |= IN_ATTACK;
-				}else {
-					if (attack && keepClicks <= keepForTicks->GetValue() / 2) {
+				}
+				else
+				{
+					if (attack && keepClicks <= keepForTicks->GetValue() / 2)
+					{
 						cmd->buttons &= ~IN_ATTACK;
 					}
-					if (attack && keepClicks > keepForTicks->GetValue() / 2) {
+					if (attack && keepClicks > keepForTicks->GetValue() / 2)
+					{
 						cmd->buttons |= IN_ATTACK;
 					}
 				}
@@ -105,10 +112,12 @@ namespace Client::Module
 		}
 		bool AutoShoot::getAutoPunch(C_TerrorWeapon *pWeapon)
 		{
+			if (!pWeapon)
+				return false;
 			if (!autoPunch->GetValue())
 				return false;
 			if (!onlySniper->GetValue() && !onlyShotgun->GetValue())
-				return true;
+				return false;
 			int id = pWeapon->GetWeaponID();
 			if (onlySniper->GetValue() && isSniper(id))
 				return true;
