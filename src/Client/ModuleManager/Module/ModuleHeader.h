@@ -81,11 +81,11 @@ namespace Client::Module
 
         void FloatSlider(V::FloatValue *value)
         {
-            ImGui::SliderFloat(value->GetName().c_str(), &value->m_Value, value->GetMin(), value->GetMax(), ("%0.2f" + value->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
+            ImGui::DragFloat(value->GetName().c_str(), &value->m_Value, 0.005f, value->GetMin(), value->GetMax(), ("%0.2f" + value->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
         }
         void IntegerSlider(V::NumberValue *value)
         {
-            ImGui::SliderInt(value->GetName().c_str(), &value->m_Value, value->GetMin(), value->GetMax(), ("%d" + value->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
+            ImGui::DragInt(value->GetName().c_str(), &value->m_Value, 0.005f, value->GetMin(), value->GetMax(), ("%d" + value->GetFormat()).c_str(), ImGuiSliderFlags_AlwaysClamp);
         }
         void ListBox(V::ListValue *value)
         {
