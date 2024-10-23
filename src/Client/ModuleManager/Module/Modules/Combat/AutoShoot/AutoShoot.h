@@ -14,7 +14,10 @@ namespace Client::Module
 				vManager.AddValue(autoPunch);
 				vManager.AddValue(onlySniper);
 				vManager.AddValue(onlyShotgun);
+
 				vManager.AddValue(keepForTicks);
+				vManager.AddValue(clickCps);
+
 				vManager.AddValue(Debug);
 			};
 			void RenderValueGui() override
@@ -22,7 +25,9 @@ namespace Client::Module
 				BooleanCheckBox(autoPunch);
 				BooleanCheckBox(onlySniper);
 				BooleanCheckBox(onlyShotgun);
-				IntegerSlider(keepForTicks);
+				FloatRange(keepForTicks);
+				FloatRange(clickCps);
+				
 				BooleanCheckBox(Debug);
 			}
 			// autoPunch
@@ -32,7 +37,9 @@ namespace Client::Module
 			// onlyShotgun
 			V::BooleanValue *onlyShotgun = new V::BooleanValue("OnlyShotgun", true);
 			// waitForTicks
-			V::NumberValue *keepForTicks = new V::NumberValue("KeepForTicks", 10, 0, 20, "ticks");
+			V::FloatRangeValue *keepForTicks = new V::FloatRangeValue("KeepForTicks", V::Range(0.05,0.08), V::Range(0.01, 1), "sec");
+			// ClickCPS
+			V::FloatRangeValue *clickCps = new V::FloatRangeValue("ClickCps", V::Range(10, 20), V::Range(1, 20), "cps");
 			// Debug
 			V::BooleanValue *Debug = new V::BooleanValue("Debug", false);
 
@@ -41,7 +48,8 @@ namespace Client::Module
 			bool getAutoPunch(C_TerrorWeapon *pWeapon);
 
 		private:
-			int keepClicks = 0;
+			float lastAttackTime = 0, lastKeepClicks = 0;
+			float keepClicks = 0;
 			bool nextPunch = false;
 			bool isSniper(int id);
 			bool isShotgun(int id);

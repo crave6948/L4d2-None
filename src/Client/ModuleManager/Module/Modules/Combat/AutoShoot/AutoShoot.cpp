@@ -51,57 +51,92 @@ namespace Client::Module
 			isClicking = false;
 			if (!ShouldRun(pLocal, pWeapon, cmd))
 			{
-				keepClicks = 0;
+				keepClicks = -1;
 				nextPunch = false;
 				return;
 			}
-			if (nextPunch)
+			const auto [minCps, maxCps] = clickCps->GetValue();
+			const int randomCps = Utils::RandomUtils::generateRandomNumber(minCps, maxCps);
+			const auto click = [&](bool unclick)
 			{
-				nextPunch = false;
-				bool attack = pWeapon->CanSecondaryAttack();
-				if (attack && !(cmd->buttons & IN_ATTACK2))
+				if (unclick && (cmd->buttons & IN_ATTACK))
+					cmd->buttons &= ~IN_ATTACK;
+				else if (!(cmd->buttons & IN_ATTACK))
+					cmd->buttons |= IN_ATTACK;
+			};
+			if (I::GlobalVars->realtime - lastAttackTime >= 1.f / randomCps)
+			{
+				lastAttackTime = I::GlobalVars->realtime;
+				click(false);
+				const auto [minKeepTicks, maxKeepTicks] = keepForTicks->GetValue();
+				if (keepClicks == -1)
 				{
-					cmd->buttons |= IN_ATTACK2;
+					keepClicks = Utils::RandomUtils::generateRandomNumber(minKeepTicks, maxKeepTicks);
+					lastKeepClicks = I::GlobalVars->realtime;
 				}
 			}
-			if (cmd->buttons & IN_ATTACK)
+			if (keepClicks != -1)
 			{
-				cmd->buttons &= ~IN_ATTACK;
-				bool attack = pWeapon->CanPrimaryAttack();
-				if (!attack)
+				const bool hasKeepClicksReached = I::GlobalVars->realtime - lastKeepClicks >= keepClicks;
+				if (hasKeepClicksReached)
 				{
-					nextPunch = false;
-				}
-				if (attack && keepClicks <= 0)
-				{
-					keepClicks = keepForTicks->GetValue();
-					if (getAutoPunch(pWeapon))
-						nextPunch = true;
-					cmd->buttons |= IN_ATTACK;
+					click(false);
+					isClicking = false;
+					keepClicks = -1;
 				}
 				else
 				{
-					if (attack && keepClicks <= keepForTicks->GetValue() / 2)
-					{
-						cmd->buttons &= ~IN_ATTACK;
-					}
-					if (attack && keepClicks > keepForTicks->GetValue() / 2)
-					{
-						cmd->buttons |= IN_ATTACK;
-					}
+					click(true);
+					isClicking = true;
 				}
 			}
-			else
-			{
-				if (keepClicks > 0)
-					cmd->buttons |= IN_ATTACK;
-				nextPunch = false;
-			}
-			if (keepClicks > 0)
-			{
-				keepClicks--;
-			}
-			isClicking = (cmd->buttons & IN_ATTACK) != 0;
+			// if (nextPunch)
+			// {
+			// 	nextPunch = false;
+			// 	bool attack = pWeapon->CanSecondaryAttack();
+			// 	if (attack && !(cmd->buttons & IN_ATTACK2))
+			// 	{
+			// 		cmd->buttons |= IN_ATTACK2;
+			// 	}
+			// }
+			// if (cmd->buttons & IN_ATTACK)
+			// {
+			// 	cmd->buttons &= ~IN_ATTACK;
+			// 	bool attack = pWeapon->CanPrimaryAttack();
+			// 	if (!attack)
+			// 	{
+			// 		nextPunch = false;
+			// 	}
+			// 	if (attack && keepClicks <= 0)
+			// 	{
+			// 		keepClicks = keepForTicks->GetValue();
+			// 		if (getAutoPunch(pWeapon))
+			// 			nextPunch = true;
+			// 		cmd->buttons |= IN_ATTACK;
+			// 	}
+			// 	else
+			// 	{
+			// 		if (attack && keepClicks <= keepForTicks->GetValue() / 2)
+			// 		{
+			// 			cmd->buttons &= ~IN_ATTACK;
+			// 		}
+			// 		if (attack && keepClicks > keepForTicks->GetValue() / 2)
+			// 		{
+			// 			cmd->buttons |= IN_ATTACK;
+			// 		}
+			// 	}
+			// }
+			// else
+			// {
+			// 	if (keepClicks > 0)
+			// 		cmd->buttons |= IN_ATTACK;
+			// 	nextPunch = false;
+			// }
+			// if (keepClicks > 0)
+			// {
+			// 	keepClicks--;
+			// }
+			// isClicking = (cmd->buttons & IN_ATTACK) != 0;
 		}
 		void AutoShoot::onRender2D()
 		{
