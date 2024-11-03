@@ -18,6 +18,7 @@ namespace Client::Module
 				vManager.AddValue(keepForTicks);
 				vManager.AddValue(clickCps);
 				vManager.AddValue(allowOtherGuns);
+				vManager.AddValue(startDelay);
 
 				vManager.AddValue(Debug);
 			};
@@ -29,6 +30,7 @@ namespace Client::Module
 				FloatRange(keepForTicks);
 				FloatRange(clickCps);
 				BooleanCheckBox(allowOtherGuns);
+				FloatSlider(startDelay);
 				
 				BooleanCheckBox(Debug);
 			}
@@ -44,6 +46,8 @@ namespace Client::Module
 			V::FloatRangeValue *clickCps = new V::FloatRangeValue("ClickCps", V::Range(10, 20), V::Range(1, 20), "cps");
 			// allowOtherGunToAutoClick
 			V::BooleanValue *allowOtherGuns = new V::BooleanValue("AllowOtherGuns", true);
+			// startDelay FloatValue
+			V::FloatValue *startDelay = new V::FloatValue("StartDelay", 0.3f, 0.0f, 2.0f,"sec");
 			// Debug
 			V::BooleanValue *Debug = new V::BooleanValue("Debug", false);
 
@@ -52,7 +56,7 @@ namespace Client::Module
 			bool getAutoPunch(C_TerrorWeapon *pWeapon);
 
 		private:
-			float lastAttackTime = 0, lastKeepClicks = 0;
+			float lastAttackTime = 0, lastKeepClicks = 0, lastDelay = 0;
 			float keepClicks = 0;
 			bool nextPunch = false;
 			bool isSniper(int id);

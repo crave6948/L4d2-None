@@ -66,8 +66,10 @@ namespace Client::Module
 				keepClicks = -1;
 				nextPunch = false;
 				lastKeepClicks = I::GlobalVars->realtime;
+				lastDelay = I::GlobalVars->realtime;
 				return;
 			}
+			if (I::GlobalVars->realtime - lastDelay < startDelay->GetValue()) return;
 			const auto [minCps, maxCps] = clickCps->GetValue();
 			const int randomCps = Utils::RandomUtils::generateRandomNumber(minCps, maxCps);
 			const auto click = [&](bool press)
@@ -77,6 +79,8 @@ namespace Client::Module
 				else if (!press && (cmd->buttons & IN_ATTACK))
 					cmd->buttons &= ~IN_ATTACK;
 			};
+			click(false);
+
 			bool autoPunch = getAutoPunch(pWeapon);
 			if (nextPunch)
 			{
