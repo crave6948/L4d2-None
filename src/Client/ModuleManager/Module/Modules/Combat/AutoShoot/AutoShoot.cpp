@@ -14,7 +14,7 @@ namespace Client::Module
 		}
 		bool AutoShoot::ShouldRun(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd)
 		{
-			if (cmd->buttons & IN_USE)
+			if (cmd->buttons & IN_USE || !(cmd->buttons & IN_ATTACK) || cmd->buttons & IN_ATTACK2)
 				return false;
 
 			// if (pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pWeapon->m_bInReload() || pLocal->m_isIncapacitated())
@@ -27,6 +27,7 @@ namespace Client::Module
 				return false;
 			if (pWeapon->m_bInReload())
 				return false;
+
 			switch (pWeapon->GetWeaponID())
 			{
 			case WEAPON_AWP:
@@ -40,6 +41,17 @@ namespace Client::Module
 			case WEAPON_PUMP_SHOTGUN:
 			case WEAPON_CHROME_SHOTGUN:
 				return true;
+
+			case WEAPON_AK47:
+			case WEAPON_M16A1:
+			case WEAPON_M60:
+			case WEAPON_MAC10:
+			case WEAPON_MP5:
+			case WEAPON_SCAR:
+			case WEAPON_SSG552:
+			case WEAPON_UZI:
+				return allowOtherGuns->GetValue();
+
 			default:
 				break;
 			}
@@ -53,26 +65,43 @@ namespace Client::Module
 			{
 				keepClicks = -1;
 				nextPunch = false;
+				lastKeepClicks = I::GlobalVars->realtime;
 				return;
 			}
 			const auto [minCps, maxCps] = clickCps->GetValue();
 			const int randomCps = Utils::RandomUtils::generateRandomNumber(minCps, maxCps);
-			const auto click = [&](bool unclick)
+			const auto click = [&](bool press)
 			{
-				if (unclick && (cmd->buttons & IN_ATTACK))
-					cmd->buttons &= ~IN_ATTACK;
-				else if (!(cmd->buttons & IN_ATTACK))
+				if (press && !(cmd->buttons & IN_ATTACK))
 					cmd->buttons |= IN_ATTACK;
+				else if (!press && (cmd->buttons & IN_ATTACK))
+					cmd->buttons &= ~IN_ATTACK;
 			};
+			bool autoPunch = getAutoPunch(pWeapon);
+			if (nextPunch)
+			{
+				nextPunch = false;
+				if (autoPunch)
+				{
+					bool attack = pWeapon->CanSecondaryAttack(-0.2f);
+					if (attack && !(cmd->buttons & IN_ATTACK2))
+					{
+						cmd->buttons |= IN_ATTACK2;
+					}
+				}
+			}
+
 			if (I::GlobalVars->realtime - lastAttackTime >= 1.f / randomCps)
 			{
 				lastAttackTime = I::GlobalVars->realtime;
-				click(false);
+				click(true);
 				const auto [minKeepTicks, maxKeepTicks] = keepForTicks->GetValue();
 				if (keepClicks == -1)
 				{
 					keepClicks = Utils::RandomUtils::generateRandomNumber(minKeepTicks, maxKeepTicks);
 					lastKeepClicks = I::GlobalVars->realtime;
+					if (autoPunch)
+						nextPunch = true;
 				}
 			}
 			if (keepClicks != -1)
@@ -90,15 +119,7 @@ namespace Client::Module
 					isClicking = true;
 				}
 			}
-			// if (nextPunch)
-			// {
-			// 	nextPunch = false;
-			// 	bool attack = pWeapon->CanSecondaryAttack();
-			// 	if (attack && !(cmd->buttons & IN_ATTACK2))
-			// 	{
-			// 		cmd->buttons |= IN_ATTACK2;
-			// 	}
-			// }
+
 			// if (cmd->buttons & IN_ATTACK)
 			// {
 			// 	cmd->buttons &= ~IN_ATTACK;

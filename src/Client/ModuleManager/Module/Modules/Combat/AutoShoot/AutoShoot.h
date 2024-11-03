@@ -17,6 +17,7 @@ namespace Client::Module
 
 				vManager.AddValue(keepForTicks);
 				vManager.AddValue(clickCps);
+				vManager.AddValue(allowOtherGuns);
 
 				vManager.AddValue(Debug);
 			};
@@ -27,6 +28,7 @@ namespace Client::Module
 				BooleanCheckBox(onlyShotgun);
 				FloatRange(keepForTicks);
 				FloatRange(clickCps);
+				BooleanCheckBox(allowOtherGuns);
 				
 				BooleanCheckBox(Debug);
 			}
@@ -40,6 +42,8 @@ namespace Client::Module
 			V::FloatRangeValue *keepForTicks = new V::FloatRangeValue("KeepForTicks", V::Range(0.05,0.08), V::Range(0.01, 1), "sec");
 			// ClickCPS
 			V::FloatRangeValue *clickCps = new V::FloatRangeValue("ClickCps", V::Range(10, 20), V::Range(1, 20), "cps");
+			// allowOtherGunToAutoClick
+			V::BooleanValue *allowOtherGuns = new V::BooleanValue("AllowOtherGuns", true);
 			// Debug
 			V::BooleanValue *Debug = new V::BooleanValue("Debug", false);
 
