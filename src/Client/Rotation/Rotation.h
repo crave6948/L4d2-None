@@ -37,4 +37,8 @@ namespace Helper
             return yaw == 0.f && pitch == 0.f;
         }
     };
+    enum RotationType {
+        Normal,
+        Instant
+    };
 }

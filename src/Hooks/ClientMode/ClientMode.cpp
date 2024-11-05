@@ -17,8 +17,17 @@ bool __fastcall ClientMode::CreateMove::Detour(void *ecx, void *edx, float input
 	// if (Table.Original<FN>(Index)(ecx, edx, input_sample_frametime, cmd))
 	// 	I::Prediction->SetLocalViewAngles(cmd->viewangles);
 
+
 	// uintptr_t _ebp; __asm mov _ebp, ebp;
+	// g.m_send_packet = reinterpret_cast<bool*>(*reinterpret_cast<byte**>(_ebp) - 0x1D);
 	// bool* pSendPacket = (bool*)(***(uintptr_t***)_ebp - 0x1D);
+
+	DWORD _ebp;
+	__asm mov _ebp, ebp;
+	bool* pSendPacket = (bool*)(***(uintptr_t***)_ebp - 0x1D);
+	Client::client.moduleManager.fakeLag->shouldCollectPacket = false;
+	Client::client.moduleManager.fakeLag->pSendPacket = pSendPacket;
+	
 	C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
 	C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();
 	Client::client.moduleManager.onCreateMove(cmd, pLocal, pWeapon);

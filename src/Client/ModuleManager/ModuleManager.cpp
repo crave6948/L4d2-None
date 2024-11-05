@@ -24,6 +24,7 @@ namespace Client::Module
         delete thirdPerson;
         delete rotations;
         delete fontManager;
+        delete fakeLag;
     }
 
     void ModuleManager::Init()
@@ -41,6 +42,7 @@ namespace Client::Module
         featurelist.push_back(rotations);
 
         featurelist.push_back(fontManager);
+        featurelist.push_back(fakeLag);
     }
 
     void ModuleManager::onRender2D()

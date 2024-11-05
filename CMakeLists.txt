@@ -38,3 +38,10 @@ set_target_properties(l4d2_base PROPERTIES
     CXX_STANDARD_REQUIRED ON
     OUTPUT_NAME "pol-crave-git" # Replace pol with the actual library name
 )
+
+# Add custom command to reconfigure and rebuild project
+add_custom_target(reconfigure
+    COMMAND ${CMAKE_COMMAND} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
+    COMMENT "Reconfiguring and rebuilding project"
+)

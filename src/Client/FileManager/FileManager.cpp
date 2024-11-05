@@ -1,10 +1,12 @@
+#pragma once
 #include "FileManager.h"
 #include "../Value/Values/BooleanValue.h"
 #include "../Value/Values/ListValue.h"
 #include "../Value/Values/NumberValue.h"
 #include "../Value/Values/FloatValue.h"
-#include "../../SDK/SDK.h"
+#ifndef Client_None_H
 #include "../None.h"
+#endif
 namespace Client::File
 {
     FileManager::FileManager()

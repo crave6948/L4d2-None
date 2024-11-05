@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 #include "../../../SDK/SDK.h"
+#ifndef UtilsCollector_h
 #include "Utils/UtilsCollector.h"
+#endif
 #include "../../Value/ValueManager.h"
 #include "ModuleCategory.h"
 #include "../../../Etc/Imgui/imgui.h"

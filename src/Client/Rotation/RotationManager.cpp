@@ -3,7 +3,7 @@
 #include "../None.h"
 namespace Helper
 {
-    void RotationManager::moveTo(Rotation rotation, float targetDistance, bool isInCrosshair)
+    void RotationManager::moveTo(Rotation rotation, float targetDistance, bool isInCrosshair, RotationType rotationMode)
     {
         const auto rotations = Client::client.moduleManager.rotations;
         this->targetRotation = rotation;
@@ -11,6 +11,10 @@ namespace Helper
         this->isInCrosshair = isInCrosshair;
         this->keepTicks = TIME_TO_TICKS(rotations->keepTick->GetValue());
         this->DisabledRotation = false;
+        if (rotationMode == RotationType::Instant) {
+            this->serverRotation = rotation;
+            this->keepTicks = 1;
+        }
     }
     void RotationManager::onUpdate()
     {
@@ -104,12 +108,21 @@ namespace Helper
             slowFactor = 0.3f;
             slowTicks--;
         }
-        Rotation rotation = clampRotation(Rotation(currentRotation.yaw + U::Math.coerceIn(angleDifference.yaw, -straightLineYaw, straightLineYaw) * slowFactor, currentRotation.pitch + U::Math.coerceIn(angleDifference.pitch, -straightLinePitch, straightLinePitch) * slowFactor));
+        Rotation rotation = clampRotation(Rotation(currentRotation.yaw + (U::Math.coerceIn(angleDifference.yaw, -straightLineYaw, straightLineYaw) * slowFactor), currentRotation.pitch + (U::Math.coerceIn(angleDifference.pitch, -straightLinePitch, straightLinePitch) * slowFactor)));
         return rotation;
     }
-    void RotationManager::ForceBack()
+    void RotationManager::ForceBack(bool instant)
     {
         this->keepTicks = 0;
+        if (instant)
+        {
+            this->DisabledRotation = true;
+            Vector viewAngles;
+            I::EngineClient->GetViewAngles(viewAngles);
+            Rotation viewAnglesRotation = Rotation(viewAngles.y, viewAngles.x);
+            serverRotation = viewAnglesRotation;
+            ticksToRotate = 0;
+        }
     }
     Rotation RotationManager::clampRotation(Rotation rotation)
     {

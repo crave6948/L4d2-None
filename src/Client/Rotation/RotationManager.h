@@ -6,7 +6,7 @@ namespace Helper
     class RotationManager
     {
     public:
-        void moveTo(Rotation rotation, float targetDistance, bool isInCrosshair);
+        void moveTo(Rotation rotation, float targetDistance, bool isInCrosshair, RotationType rotationMode);
         void onUpdate();
         Rotation calculateRotation(Rotation currentRotation, Rotation targetRotation, float targetdistance, bool isInCrosshair);
         // get server rotation
@@ -20,7 +20,7 @@ namespace Helper
             return Vector(serverRotation.pitch, serverRotation.yaw, 0);
         };
         bool DisabledRotation = true;
-        void ForceBack();
+        void ForceBack(bool instant = false);
 
     private:
         Rotation serverRotation = Rotation();

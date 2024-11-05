@@ -46,7 +46,7 @@ namespace Client::Module
             }
             if (isLocking)
             {
-                Helper::rotationManager.moveTo(Helper::Rotation().toRotation(lockRotation), 1, false);
+                Helper::rotationManager.moveTo(Helper::Rotation().toRotation(lockRotation), 1, false, Helper::RotationType::Instant);
             }
         }
         void ThirdPerson::onFrameStageNotify(ClientFrameStage_t curStage)

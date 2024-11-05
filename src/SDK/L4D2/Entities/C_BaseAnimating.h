@@ -101,6 +101,11 @@ public:
 	}
 	inline bool GetHitboxPositionByGroup(const int nGroup, Vector &vPos)
 	{
+		matrix3x4_t Matrix[NUM_STUDIOBONES];
+		// if (!this->SetupBones(Matrix, NUM_STUDIOBONES, 0x100, I::GlobalVars->curtime))
+		if (!this->SetupBones(Matrix, NUM_STUDIOBONES, 0x100, I::GlobalVars->curtime))
+			return false;
+
 		const model_t *pModel = this->GetModel();
 
 		if (!pModel)
@@ -111,17 +116,15 @@ public:
 		if (!pHdr)
 			return false;
 
-		const mstudiohitboxset *pSet = pHdr->pHitboxSet(this->m_nHitboxSet());
+		// const mstudiohitboxset *pSet = pHdr->pHitboxSet(this->m_nHitboxSet());
+		const mstudiohitboxset *pSet = pHdr->pHitboxSet(0);
 
 		if (!pSet)
 			return false;
 
-		matrix3x4_t Matrix[NUM_STUDIOBONES];
-		if (!this->SetupBones(Matrix, NUM_STUDIOBONES, 0x100, I::GlobalVars->curtime))
-			return false;
-
 		mstudiobbox *pFinalBox = nullptr;
 
+		// mstudiobbox *pBox = pSet->pHitbox(nGroup);
 		// Gets head properly, possibly fails for other groups due to obvious reasons.
 		for (int n = 0; n < pSet->numhitboxes; n++)
 		{
@@ -132,6 +135,7 @@ public:
 
 			pFinalBox = pBox;
 		}
+		// pFinalBox = pBox;
 
 		if (!pFinalBox)
 			return false;
@@ -139,23 +143,6 @@ public:
 		U::Math.VectorTransform(pFinalBox->bbmin, Matrix[pFinalBox->bone], min);
 		U::Math.VectorTransform(pFinalBox->bbmax, Matrix[pFinalBox->bone], max);
 		vPos = (min + max) * 0.5f;
-		switch (nGroup)
-		{
-		case HITGROUP_CHEST:
-			vPos.x -= 2;
-			vPos.y += 5.5;
-			vPos.z -= 5;
-			// if (this->GetClientClass()->m_ClassID == EClientClass::Infected) {
-			// 	vPos = this->GetAbsOrigin();
-			// 	vPos.z += 47;
-			// }
-			break;
-		case HITGROUP_STOMACH:
-			vPos.z -= 2;
-			break;
-		default:
-			break;
-		}
 		return true;
 	}
 };

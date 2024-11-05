@@ -12,6 +12,7 @@
 #include "Module/Modules/Combat/FastMelee/FastMelee.h"
 
 #include "Module/Modules/Misc/FontManager/FontManager.h"
+#include "Module/Modules/Misc/FakeLag/FakeLag.h"
 
 #include "../Engine/Prediction/EnginePrediction.h"
 namespace Client::Module
@@ -36,6 +37,7 @@ namespace Client::Module
 		RotationsModule::Rotations *rotations = new RotationsModule::Rotations();
 
 		FontManagerModule::FontManager *fontManager = new FontManagerModule::FontManager();
+		FakeLagModule::FakeLag *fakeLag = new FakeLagModule::FakeLag();
 
 		void Init();
 		void onRender2D();

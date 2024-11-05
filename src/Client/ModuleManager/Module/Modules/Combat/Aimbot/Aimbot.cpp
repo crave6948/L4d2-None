@@ -35,7 +35,7 @@ namespace Client::Module::AimbotModule
 		auto [_, weaponId] = CheckWeapon(pWeapon);
 		if (!_)
 			return;
-		Vector hitbox = targetInfo.target->As<C_BaseAnimating *>()->GetHitboxPositionByGroup(targetInfo.hitGroup);
+		Vector hitbox = targetInfo.target->GetBaseEntity()->GetBaseAnimating()->GetHitboxPositionByGroup(targetInfo.hitGroup);
 		Vector aimVector = U::Math.GetAngleToPosition(pLocal->Weapon_ShootPosition(), hitbox);
 		if (I::GlobalVars->realtime - lastUpdate >= updateDelay->GetValue() / 1000.f)
 		{
@@ -47,7 +47,24 @@ namespace Client::Module::AimbotModule
 		bool isInCrosshair = isInCrossHair(cmd, pLocal, targetInfo.target);
 
 		hasLeftClickBefore = true;
-		Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair);
+		Helper::RotationType type = Helper::RotationType::Normal;
+		if (rotationMode->GetSelected() == "Instant" || rotationMode->GetSelected() == "PerfectSlient")
+		{
+			type = Helper::RotationType::Instant;
+			if (isMelee(weaponId))
+			{
+				// if (pWeapon->CanPrimaryAttack(-0.2f))
+					Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
+				// else
+					// Helper::rotationManager.ForceBack(true);
+			}else
+			if (pWeapon->CanPrimaryAttack(-0.2f))
+				Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
+			else
+				Helper::rotationManager.ForceBack(true);
+		}
+		else
+			Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
 
 		if (cmd->buttons & IN_ATTACK)
 		{
@@ -62,11 +79,16 @@ namespace Client::Module::AimbotModule
 			{
 				cmd->buttons &= ~IN_ATTACK;
 			}
+			if (rotationMode->GetSelected() == "PerfectSlient" && cmd->buttons & IN_ATTACK && pWeapon->CanPrimaryAttack(-0.2f))
+				Client::client.moduleManager.fakeLag->doCollectPacket();
 		}
 	}
 	void Aimbot::onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
 	{
-		if (!silent->GetValue())
+		bool thirdperson_lock = Client::client.moduleManager.thirdPerson->isLocking;
+		if (thirdperson_lock)
+			return;
+		if (rotationMode->GetSelected() == "Legit")
 		{
 			I::EngineClient->SetViewAngles(cmd->viewangles);
 		}
@@ -99,6 +121,22 @@ namespace Client::Module::AimbotModule
 			std::string classname = className(targetInfo.classId);
 			G::Draw.String(EFonts::DEBUG, startX, startY, Color(255, 255, 255, 255), TXT_DEFAULT, classname.c_str());
 			startY += getFontHeight + 1;
+			Vector screen;
+			int size = 6;
+			G::Util.W2S(targetInfo.targetPosition, screen);
+			const int half = size / 2;
+			// top left corner
+			G::Draw.Line(screen.x - size, screen.y - size, screen.x - half, screen.y - size, Color(255, 255, 255, 255));
+			G::Draw.Line(screen.x - size, screen.y - size, screen.x - size, screen.y - half, Color(255, 255, 255, 255));
+			// top right corner
+			G::Draw.Line(screen.x + size, screen.y - size, screen.x + half, screen.y - size, Color(255, 255, 255, 255));
+			G::Draw.Line(screen.x + size, screen.y - size, screen.x + size, screen.y - half, Color(255, 255, 255, 255));
+			// bottom left corner
+			G::Draw.Line(screen.x - size, screen.y + size, screen.x - half, screen.y + size, Color(255, 255, 255, 255));
+			G::Draw.Line(screen.x - size, screen.y + size, screen.x - size, screen.y + half, Color(255, 255, 255, 255));
+			// bottom right corner
+			G::Draw.Line(screen.x + size, screen.y + size, screen.x + half, screen.y + size, Color(255, 255, 255, 255));
+			G::Draw.Line(screen.x + size, screen.y + size, screen.x + size, screen.y + half, Color(255, 255, 255, 255));
 		}
 	}
 	void Aimbot::onEnabled()
@@ -312,7 +350,7 @@ namespace Client::Module::AimbotModule
 		const auto GetFovDistance = [&, clientViewAngles](IClientEntity *target, int classType) -> std::pair<float, float>
 		{
 			Vector src = pLocal->Weapon_ShootPosition();
-			Vector dst = target->As<C_BaseAnimating *>()->GetHitboxPositionByGroup(GetHitbox(classType));
+			Vector dst = target->GetBaseEntity()->GetBaseAnimating()->GetHitboxPositionByGroup(GetHitbox(classType));
 			float distance = src.DistTo(dst);
 
 			float fov = U::Math.GetFovBetween(clientViewAngles, U::Math.GetAngleToPosition(src, dst));
@@ -336,7 +374,7 @@ namespace Client::Module::AimbotModule
 			if (fov > aimFov)
 				return false;
 
-			Vector hitbox = target->As<C_BaseAnimating *>()->GetHitboxPositionByGroup(GetHitbox(classType));
+			Vector hitbox = target->GetBaseEntity()->GetBaseAnimating()->GetHitboxPositionByGroup(GetHitbox(classType));
 			CTraceFilterHitscan filter{pLocal};
 			auto pHit{G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), hitbox, &filter)};
 			if (!pHit || pHit->entindex() != target->entindex())
@@ -366,7 +404,7 @@ namespace Client::Module::AimbotModule
 			return TargetInfo();
 		int classid = foundTarget->GetBaseEntity()->GetClientClass()->m_ClassID;
 		int hitgroup = GetHitbox(classid);
-		Vector hitbox = foundTarget->As<C_BaseAnimating *>()->GetHitboxPositionByGroup(hitgroup);
+		Vector hitbox = foundTarget->GetBaseEntity()->GetBaseAnimating()->GetHitboxPositionByGroup(hitgroup);
 		Vector aimVector = U::Math.GetAngleToPosition(pLocal->Weapon_ShootPosition(), hitbox);
 		return TargetInfo(foundTarget, hitbox, Helper::Rotation().toRotation(aimVector), hitgroup, classid);
 	}

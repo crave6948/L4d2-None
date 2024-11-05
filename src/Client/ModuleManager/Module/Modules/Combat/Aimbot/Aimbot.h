@@ -50,7 +50,7 @@ namespace Client::Module
                 vManager.AddValue(meleeFov);
 
                 vManager.AddValue(sortModes);
-                vManager.AddValue(silent);
+                vManager.AddValue(rotationMode);
                 vManager.AddValue(switchDelay);
                 vManager.AddValue(updateDelay);
 
@@ -87,7 +87,7 @@ namespace Client::Module
                 }
 
                 ListBox(sortModes);
-                BooleanCheckBox(silent);
+                ListBox(rotationMode);
                 IntegerSlider(switchDelay);
                 IntegerSlider(updateDelay);
 
@@ -117,7 +117,7 @@ namespace Client::Module
             V::NumberValue *meleeFov = new V::NumberValue("MeleeFov", 180, 0, 180);
 
             V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
-            V::BooleanValue *silent = new V::BooleanValue("Silent", true);
+            V::ListValue *rotationMode = new V::ListValue("Rotation Mode", {"Legit", "Instant", "Slient", "PerfectSlient"}, "Slient");
             V::NumberValue *switchDelay = new V::NumberValue("SwitchDelay", 400, 0, 1000, "ms");
             V::NumberValue *updateDelay = new V::NumberValue("UpdateDelay", 200, 0, 1000, "ms");
 

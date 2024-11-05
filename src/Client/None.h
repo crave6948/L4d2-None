@@ -1,4 +1,6 @@
 #pragma once
+#ifndef Client_None_H
+#define Client_None_H
 #include "ModuleManager/ModuleManager.h"
 #include "FileManager/FileManager.h"
 
@@ -17,3 +19,4 @@ namespace Client
     };
     inline None client = None();
 }
+#endif
