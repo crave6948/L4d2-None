@@ -58,7 +58,7 @@ namespace Client::Module::AimbotModule
 				// else
 					// Helper::rotationManager.ForceBack(true);
 			}else
-			if (pWeapon->CanPrimaryAttack(-0.2f))
+			if (pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack())
 				Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
 			else
 				Helper::rotationManager.ForceBack(true);
@@ -79,7 +79,7 @@ namespace Client::Module::AimbotModule
 			{
 				cmd->buttons &= ~IN_ATTACK;
 			}
-			if (rotationMode->GetSelected() == "PerfectSlient" && cmd->buttons & IN_ATTACK && pWeapon->CanPrimaryAttack(-0.2f))
+			if (rotationMode->GetSelected() == "PerfectSlient" && cmd->buttons & IN_ATTACK && pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack())
 				Client::client.moduleManager.fakeLag->doCollectPacket();
 		}
 	}

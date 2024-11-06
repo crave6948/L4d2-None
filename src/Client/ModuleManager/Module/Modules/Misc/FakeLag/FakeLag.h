@@ -19,12 +19,17 @@ namespace Client::Module
 			}
 			V::NumberValue *packetLimit = new V::NumberValue("Packet Limit", 14, 1, 20);
 
-            int collectedPackets = 0;
-            bool shouldCollectPacket = false;
-            bool* pSendPacket = nullptr;
+			int collectedPackets = 0;
+			bool shouldCollectPacket = false;
+			bool *pSendPacket = nullptr;
 
-            void doCollectPacket() {shouldCollectPacket = true;};
-            void onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
+			void doCollectPacket() { shouldCollectPacket = true; };
+			void onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
+			void onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
+
+		private:
+			Vector oldAngles = Vector(0, 0, 0);
+			bool WasSet = false;
 		};
 	};
 };
