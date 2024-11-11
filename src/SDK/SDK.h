@@ -2,7 +2,10 @@
 
 #include "DrawManager/DrawManager.h"
 
-namespace I { inline void* ClientMode = nullptr; }
+namespace I { 
+	inline void* ClientMode = nullptr;
+	inline bool* pSendPacket = nullptr;
+}
 
 struct WeaponSpawnInfo_t
 {

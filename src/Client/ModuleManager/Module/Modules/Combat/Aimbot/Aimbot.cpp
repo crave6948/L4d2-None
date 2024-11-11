@@ -7,6 +7,7 @@ namespace Client::Module::AimbotModule
 {
 	void Aimbot::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
 	{
+		shouldPerfect = false;
 		isLeftClicking = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
 		if (!isLeftClicking || !ShouldRun(pLocal, pWeapon, cmd))
 		{
@@ -14,6 +15,11 @@ namespace Client::Module::AimbotModule
 			lastSwitch = 0;
 			lastUpdate = 0;
 			hasLeftClickBefore = false;
+			bWasSet = false;
+			if (rotationMode->GetSelected() == "Instant" || rotationMode->GetSelected() == "PerfectSlient")
+			{
+				Helper::rotationManager.ForceBack(true);
+			}
 			return;
 		}
 		bool allowedToSwitch = false;
@@ -53,15 +59,33 @@ namespace Client::Module::AimbotModule
 			type = Helper::RotationType::Instant;
 			if (isMelee(weaponId))
 			{
-				// if (pWeapon->CanPrimaryAttack(-0.2f))
-					Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
-				// else
+				if (!bWasSet && pWeapon->CanPrimaryAttack())
+				{
+					// Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
+					cmd->viewangles = targetInfo.aimRotation.toVector();
+					if (rotationMode->GetSelected() == "PerfectSlient")
+					shouldPerfect = true;
+					bWasSet = true;
+				}
+				else if (bWasSet) {
+					bWasSet = false;
 					// Helper::rotationManager.ForceBack(true);
+				}
 			}else
-			if (pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack())
-				Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
-			else
-				Helper::rotationManager.ForceBack(true);
+			{
+				if (!bWasSet && pWeapon->CanPrimaryAttack())
+				{
+					// Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
+					cmd->viewangles = targetInfo.aimRotation.toVector();
+					if (rotationMode->GetSelected() == "PerfectSlient")
+					shouldPerfect = true;
+					bWasSet = true;
+				}
+				else if (bWasSet) {
+					bWasSet = false;
+					// Helper::rotationManager.ForceBack(true);
+				}
+			}
 		}
 		else
 			Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
@@ -79,8 +103,14 @@ namespace Client::Module::AimbotModule
 			{
 				cmd->buttons &= ~IN_ATTACK;
 			}
-			if (rotationMode->GetSelected() == "PerfectSlient" && cmd->buttons & IN_ATTACK && pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack())
-				Client::client.moduleManager.fakeLag->doCollectPacket();
+			// if (rotationMode->GetSelected() == "PerfectSlient" && cmd->buttons & IN_ATTACK && pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack())
+			// 	// Client::client.moduleManager.fakeLag->doCollectPacket();
+			// 	shouldPerfect = true;
+			if (rotationMode->GetSelected() == "PerfectSlient" || rotationMode->GetSelected() == "Instant")
+			{
+				if (pWeapon->CanPrimaryAttack())
+					cmd->buttons |= IN_ATTACK;
+			}
 		}
 	}
 	void Aimbot::onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)

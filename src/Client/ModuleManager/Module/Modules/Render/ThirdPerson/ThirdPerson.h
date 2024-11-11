@@ -16,12 +16,14 @@ namespace Client::Module
 				// disabled PS:I'm lazy sorry
 				// vManager.AddValue(keyValue);
 				vManager.AddValue(freeStrafe);
+				vManager.AddValue(freePSilent);
 			};
 			void RenderValueGui() override
 			{
 				BooleanCheckBox(debug);
 				IntegerSlider(distance);
 				BooleanCheckBox(freeStrafe);
+				BooleanCheckBox(freePSilent);
 			}
 			void onEnabled() override;
 			void onRender2D() override;
@@ -32,11 +34,13 @@ namespace Client::Module
 			V::NumberValue *distance = new V::NumberValue("Distance", 50, 0, 180);
 			V::StringValue *keyValue = new V::StringValue("Key", "v");
 			V::BooleanValue *freeStrafe = new V::BooleanValue("FreeStrafe", false);
+			V::BooleanValue *freePSilent = new V::BooleanValue("FreePerfectSilent", false);
 			bool isThirdPerson = false;
 			bool isLocking = false;
-
+			bool getShouldPerfectSilent();
 		private:
 			Vector rotation = Vector(0, 0, 0), lockRotation = Vector(0, 0, 0);
+			bool isAllowToPerfect = false;
 		};
 	};
 };

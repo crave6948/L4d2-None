@@ -92,7 +92,7 @@ namespace Client::Module
         }
     }
 
-    void ModuleManager::onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal, C_TerrorWeapon* pWeapon)
+    void ModuleManager::onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon)
     {
         if (pLocal && !pLocal->deadflag())
         {
@@ -140,6 +140,26 @@ namespace Client::Module
             auto thirdPerson = Client::client.moduleManager.thirdPerson;
             if (thirdPerson->getEnabled() && thirdPerson->isLocking && !thirdPerson->freeStrafe->GetValue())
                 oldViewangles = cmd->viewangles;
+            // pSilent
+            {
+                static bool bWasSet = false;
+                bool shouldDoPerfect = false;
+                if (aimbot->getEnabled() && aimbot->shouldPerfect)
+                    shouldDoPerfect = true;
+                if (thirdPerson->getEnabled() && thirdPerson->getShouldPerfectSilent())
+                    shouldDoPerfect = true;
+                if (shouldDoPerfect)
+                {
+                    *I::pSendPacket = false;
+                    bWasSet = true;
+                }
+                else if (bWasSet)
+                {
+                    *I::pSendPacket = true;
+                    cmd->viewangles = oldViewangles;
+                    bWasSet = false;
+                }
+            }
             G::Util.FixMovement(oldViewangles, cmd);
         }
     }

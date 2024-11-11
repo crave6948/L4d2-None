@@ -26,7 +26,7 @@ bool __fastcall ClientMode::CreateMove::Detour(void *ecx, void *edx, float input
 	__asm mov _ebp, ebp;
 	bool* pSendPacket = (bool*)(***(uintptr_t***)_ebp - 0x1D);
 	Client::client.moduleManager.fakeLag->shouldCollectPacket = false;
-	Client::client.moduleManager.fakeLag->pSendPacket = pSendPacket;
+	I::pSendPacket = pSendPacket;
 	
 	C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
 	C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();

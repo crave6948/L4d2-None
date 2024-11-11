@@ -143,8 +143,10 @@ namespace Client::Module
             void onEnabled() override;
 
             TargetInfo targetInfo;
+            bool shouldPerfect = false;
 
         private:
+            bool bWasSet = false;
             bool ShouldRun(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd);
             std::pair<bool, int> CheckWeapon(C_TerrorWeapon *pWeapon);
             bool isInCrossHair(CUserCmd *cmd, C_TerrorPlayer *pLocal, IClientEntity *target);

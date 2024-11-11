@@ -10,32 +10,16 @@ namespace Client::Module
         }
         void FakeLag::onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
-            if (shouldCollectPacket)
+            if (collectedPackets < packetLimit->GetValue())
+                *I::pSendPacket = false;
+            if (pWeapon)
             {
-                *pSendPacket = false;
-                WasSet = true;
+                bool attack = cmd->buttons & IN_ATTACK && pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack(-0.2f);
+                if (attack)
+                    *I::pSendPacket = true;
             }
-            else
-            {
-                if (collectedPackets < packetLimit->GetValue())
-                    *pSendPacket = false;
-                if (pWeapon)
-                {
-                    bool attack = cmd->buttons & IN_ATTACK && pWeapon->CanPrimaryAttack();
-                    if (attack)
-                        *pSendPacket = true;
-                }
-            }
-            if (*pSendPacket)
-            {
+            if (*I::pSendPacket)
                 collectedPackets = 0;
-                if (WasSet)
-                {
-                    WasSet = false;
-                    *pSendPacket = true;
-                    cmd->viewangles = oldAngles;
-                }
-            }
             else
                 collectedPackets++;
         }

@@ -21,7 +21,6 @@ namespace Client::Module
 
 			int collectedPackets = 0;
 			bool shouldCollectPacket = false;
-			bool *pSendPacket = nullptr;
 
 			void doCollectPacket() { shouldCollectPacket = true; };
 			void onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
@@ -29,7 +28,6 @@ namespace Client::Module
 
 		private:
 			Vector oldAngles = Vector(0, 0, 0);
-			bool WasSet = false;
 		};
 	};
 };

@@ -25,6 +25,13 @@ namespace Client::Module
         void ThirdPerson::onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
             rotation = cmd->viewangles;
+            isAllowToPerfect = cmd->buttons & IN_ATTACK && pWeapon->CanPrimaryAttack();
+            if (freePSilent->GetValue() && isLocking && isAllowToPerfect)
+            {
+                Vector viewAngles;
+                I::EngineClient->GetViewAngles(viewAngles);
+                cmd->viewangles = viewAngles;
+            }
         }
         void ThirdPerson::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
@@ -38,7 +45,9 @@ namespace Client::Module
                     originalThirdPersonState = isThirdPerson;
                     if (!isThirdPerson)
                         isThirdPerson = true;
-                }else {
+                }
+                else
+                {
                     isThirdPerson = originalThirdPersonState;
                     I::EngineClient->SetViewAngles(lockRotation);
                     Helper::rotationManager.DisabledRotation = true;
@@ -66,8 +75,8 @@ namespace Client::Module
                 if (isThirdPerson)
                 {
                     // auto rot = Helper::rotationManager.getServerRotationVector();
-	                // I::Prediction->SetLocalViewAngles(rot);
-	                I::Prediction->SetLocalViewAngles(rotation);
+                    // I::Prediction->SetLocalViewAngles(rot);
+                    I::Prediction->SetLocalViewAngles(rotation);
                     I::IInput->m_fCameraInThirdPerson() = true;
                     I::Cvar->FindVar("cam_idealdist")->SetValue(distance->GetValue());
                     I::Cvar->FindVar("cam_collision")->SetValue(true);
@@ -83,6 +92,14 @@ namespace Client::Module
                     I::IInput->m_fCameraInThirdPerson() = false;
                 }
             }
+        }
+        bool ThirdPerson::getShouldPerfectSilent()
+        {
+            if (!freePSilent->GetValue())
+                return false;
+            if (!isLocking)
+                return false;
+            return isAllowToPerfect;
         }
     }
 }

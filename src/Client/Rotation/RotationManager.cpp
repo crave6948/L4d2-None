@@ -121,7 +121,6 @@ namespace Helper
             I::EngineClient->GetViewAngles(viewAngles);
             Rotation viewAnglesRotation = Rotation(viewAngles.y, viewAngles.x);
             serverRotation = viewAnglesRotation;
-            ticksToRotate = 0;
         }
     }
     Rotation RotationManager::clampRotation(Rotation rotation)
