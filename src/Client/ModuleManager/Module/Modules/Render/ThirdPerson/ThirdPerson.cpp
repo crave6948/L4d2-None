@@ -14,6 +14,8 @@ namespace Client::Module
 
         void ThirdPerson::onRender2D()
         {
+            if (!I::EngineClient->IsInGame() || I::EngineVGui->IsGameUIVisible())
+                return;
             if (!debug->GetValue())
                 return;
             std::string text = "Third Person : " + std::to_string(I::IInput->m_fCameraInThirdPerson());
@@ -21,11 +23,19 @@ namespace Client::Module
             Vector pos = I::IInput->m_vecCameraOffset();
             std::string text2 = std::to_string(pos.x) + " " + std::to_string(pos.y) + " " + std::to_string(pos.z);
             G::Draw.String(EFonts::DEBUG, G::Draw.m_nScreenW / 2, G::Draw.m_nScreenH / 2 + 20, Color(255, 255, 255, 255), TXT_CENTERXY, text2.c_str());
+            C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
+            C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();
+            auto [should, weaponId] = CheckWeapon(pWeapon);
+            if (!should) return;
+            if (weaponId != EWeaponID::WEAPON_MELEE) return;
+            // std::string text3 = "Time AttackQueued : " + std::to_string(pWeapon->);
+            // G::Draw.String(EFonts::DEBUG, G::Draw.m_nScreenW / 2, G::Draw.m_nScreenH / 2 + 40, Color(255, 255, 255, 255), TXT_CENTERXY, text3.c_str());
         }
         void ThirdPerson::onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
             rotation = cmd->viewangles;
-            isAllowToPerfect = cmd->buttons & IN_ATTACK && pWeapon->CanPrimaryAttack();
+            isAllowToPerfect = cmd->buttons & IN_ATTACK && ShouldRun(pLocal, pWeapon, cmd) && pWeapon->CanPrimaryAttack();
+            
             if (freePSilent->GetValue() && isLocking && isAllowToPerfect)
             {
                 Vector viewAngles;
@@ -100,6 +110,66 @@ namespace Client::Module
             if (!isLocking)
                 return false;
             return isAllowToPerfect;
+        }
+        bool ThirdPerson::ShouldRun(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd)
+        {
+            if (!I::EngineClient->IsInGame())
+            {
+                return false;
+            }
+            if (I::EngineVGui->IsGameUIVisible())
+            {
+                return false;
+            }
+            if (cmd->buttons & IN_USE)
+                return false;
+
+            // if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pLocal->m_isIncapacitated())
+            if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue())
+                return false;
+
+            // You could also check if the current spread is -1.0f and not run nospread I guess.
+            // But since I wanted to filter out shotungs and just be sure that it isnt ran for other stuff I check the weaponid.
+            auto [should, _] = CheckWeapon(pWeapon);
+
+            // check if fastmelee is swaping items
+            return should;
+        }
+        std::pair<bool, int> ThirdPerson::CheckWeapon(C_TerrorWeapon *pWeapon)
+        {
+            if (!pWeapon)
+                return std::make_pair<bool, int>(false, 9999);
+            ;
+            switch (pWeapon->GetWeaponID())
+            {
+            case WEAPON_AK47:
+            case WEAPON_AWP:
+            case WEAPON_DEAGLE:
+            case WEAPON_HUNTING_RIFLE:
+            case WEAPON_M16A1:
+            case WEAPON_M60:
+            case WEAPON_MAC10:
+            case WEAPON_MILITARY_SNIPER:
+            case WEAPON_MP5:
+            case WEAPON_PISTOL:
+            case WEAPON_SCAR:
+            case WEAPON_SCOUT:
+            case WEAPON_SSG552:
+            case WEAPON_UZI:
+            case WEAPON_AUTO_SHOTGUN:
+            case WEAPON_SPAS:
+            case WEAPON_PUMP_SHOTGUN:
+            case WEAPON_CHROME_SHOTGUN:
+            case WEAPON_GRENADE_LAUNCHER:
+                return std::make_pair<bool, int>(gunOnly->GetValue(), pWeapon->GetWeaponID());
+            case WEAPON_MELEE:
+            case WEAPON_CHAINSAW:
+                return std::make_pair<bool, int>(meleeOnly->GetValue(), pWeapon->GetWeaponID());
+            default:
+                break;
+            }
+
+            return std::make_pair<bool, int>(false, 9999);
         }
     }
 }

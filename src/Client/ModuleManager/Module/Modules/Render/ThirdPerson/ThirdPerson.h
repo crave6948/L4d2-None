@@ -17,6 +17,8 @@ namespace Client::Module
 				// vManager.AddValue(keyValue);
 				vManager.AddValue(freeStrafe);
 				vManager.AddValue(freePSilent);
+				vManager.AddValue(gunOnly);
+				vManager.AddValue(meleeOnly);
 			};
 			void RenderValueGui() override
 			{
@@ -24,6 +26,8 @@ namespace Client::Module
 				IntegerSlider(distance);
 				BooleanCheckBox(freeStrafe);
 				BooleanCheckBox(freePSilent);
+				BooleanCheckBox(gunOnly);
+				BooleanCheckBox(meleeOnly);
 			}
 			void onEnabled() override;
 			void onRender2D() override;
@@ -35,12 +39,17 @@ namespace Client::Module
 			V::StringValue *keyValue = new V::StringValue("Key", "v");
 			V::BooleanValue *freeStrafe = new V::BooleanValue("FreeStrafe", false);
 			V::BooleanValue *freePSilent = new V::BooleanValue("FreePerfectSilent", false);
+			V::BooleanValue *gunOnly = new V::BooleanValue("Gun", true);
+			V::BooleanValue *meleeOnly = new V::BooleanValue("Melee", true);
 			bool isThirdPerson = false;
 			bool isLocking = false;
 			bool getShouldPerfectSilent();
+
 		private:
 			Vector rotation = Vector(0, 0, 0), lockRotation = Vector(0, 0, 0);
 			bool isAllowToPerfect = false;
+			bool ShouldRun(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd);
+			std::pair<bool, int> CheckWeapon(C_TerrorWeapon *pWeapon);
 		};
 	};
 };

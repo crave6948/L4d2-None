@@ -11,6 +11,7 @@ namespace Client::Module
 			AutoShoot()
 			{
 				this->Create("AutoShoot", true, VK_NUMPAD2, ModuleCategory::Combat);
+				vManager.AddValue(allowPistol);
 				vManager.AddValue(autoPunch);
 				vManager.AddValue(onlySniper);
 				vManager.AddValue(onlyShotgun);
@@ -24,6 +25,7 @@ namespace Client::Module
 			};
 			void RenderValueGui() override
 			{
+				BooleanCheckBox(allowPistol);
 				BooleanCheckBox(autoPunch);
 				BooleanCheckBox(onlySniper);
 				BooleanCheckBox(onlyShotgun);
@@ -34,6 +36,8 @@ namespace Client::Module
 				
 				BooleanCheckBox(Debug);
 			}
+			// allowPistol
+			V::BooleanValue *allowPistol = new V::BooleanValue("AllowPistol", true);
 			// autoPunch
 			V::BooleanValue *autoPunch = new V::BooleanValue("AutoPunch", true);
 			// onlySniper

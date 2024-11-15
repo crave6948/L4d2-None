@@ -30,11 +30,12 @@ namespace Client::Module
 
 			switch (pWeapon->GetWeaponID())
 			{
+			case WEAPON_PISTOL:
+				return allowPistol->GetValue();
 			case WEAPON_AWP:
 			case WEAPON_DEAGLE:
 			case WEAPON_HUNTING_RIFLE:
 			case WEAPON_MILITARY_SNIPER:
-			case WEAPON_PISTOL:
 			case WEAPON_SCOUT:
 			case WEAPON_AUTO_SHOTGUN:
 			case WEAPON_SPAS:
@@ -61,6 +62,22 @@ namespace Client::Module
 		void AutoShoot::onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
 		{
 			isClicking = false;
+			if (pWeapon && !pWeapon->m_bInReload())
+			{
+				if (nextPunch)
+				{
+					nextPunch = false;
+					bool autoPunch = getAutoPunch(pWeapon);
+					if (autoPunch)
+					{
+						bool attack = pWeapon->CanSecondaryAttack(-0.2f);
+						if (attack && !(cmd->buttons & IN_ATTACK2))
+						{
+							cmd->buttons |= IN_ATTACK2;
+						}
+					}
+				}
+			}
 			if (!ShouldRun(pLocal, pWeapon, cmd))
 			{
 				keepClicks = -1;
@@ -69,7 +86,8 @@ namespace Client::Module
 				lastDelay = I::GlobalVars->realtime;
 				return;
 			}
-			if (I::GlobalVars->realtime - lastDelay < startDelay->GetValue()) return;
+			if (I::GlobalVars->realtime - lastDelay < startDelay->GetValue())
+				return;
 			const auto [minCps, maxCps] = clickCps->GetValue();
 			const int randomCps = Utils::RandomUtils::generateRandomNumber(minCps, maxCps);
 			const auto click = [&](bool press)
@@ -80,20 +98,6 @@ namespace Client::Module
 					cmd->buttons &= ~IN_ATTACK;
 			};
 			click(false);
-
-			bool autoPunch = getAutoPunch(pWeapon);
-			if (nextPunch)
-			{
-				nextPunch = false;
-				if (autoPunch)
-				{
-					bool attack = pWeapon->CanSecondaryAttack(-0.2f);
-					if (attack && !(cmd->buttons & IN_ATTACK2))
-					{
-						cmd->buttons |= IN_ATTACK2;
-					}
-				}
-			}
 
 			if (I::GlobalVars->realtime - lastAttackTime >= 1.f / randomCps)
 			{
