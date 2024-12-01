@@ -1,4 +1,6 @@
 #include "AutoShoot.h"
+
+#include "../../../../../None.h"
 namespace Client::Module
 {
 	namespace AutoShootModule
@@ -87,6 +89,9 @@ namespace Client::Module
 				return;
 			}
 			if (I::GlobalVars->realtime - lastDelay < startDelay->GetValue())
+				return;
+			auto fastMelee = Client::client.moduleManager.fastMelee;
+			if (fastMelee->getEnabled() && fastMelee->isSwaping())
 				return;
 			const auto [minCps, maxCps] = clickCps->GetValue();
 			const int randomCps = Utils::RandomUtils::generateRandomNumber(minCps, maxCps);
