@@ -139,10 +139,19 @@ public:
 
 		if (!pFinalBox)
 			return false;
-		Vector min,max;
+		Vector min, max;
 		U::Math.VectorTransform(pFinalBox->bbmin, Matrix[pFinalBox->bone], min);
 		U::Math.VectorTransform(pFinalBox->bbmax, Matrix[pFinalBox->bone], max);
-		vPos = (min + max) * 0.5f;
+		if (nGroup == HITGROUP_CHEST)
+		{
+			min = this->m_vecMins();
+			max = this->m_vecMaxs();
+			Vector vMinPos = this->m_vecOrigin() + min, vMaxPos = this->m_vecOrigin() + max;
+			vPos = (vMinPos + vMaxPos) * 0.5f;
+			vPos.y = this->m_vecOrigin().y + (min.y + max.y) * 0.6f;
+		}
+		else
+			vPos = (min + max) * 0.5f;
 		return true;
 	}
 };
