@@ -5,9 +5,10 @@
 
 namespace Client::Module::AimbotModule
 {
-	void Aimbot::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
+	void Aimbot::onPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal, int _PredictedFlags)
 	{
 		shouldPerfect = false;
+		isAiming = false;
 		isLeftClicking = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
 		if (!isLeftClicking || !ShouldRun(pLocal, pWeapon, cmd))
 		{
@@ -15,11 +16,6 @@ namespace Client::Module::AimbotModule
 			lastSwitch = 0;
 			lastUpdate = 0;
 			hasLeftClickBefore = false;
-			bWasSet = false;
-			if (rotationMode->GetSelected() == "Instant" || rotationMode->GetSelected() == "PerfectSlient")
-			{
-				Helper::rotationManager.ForceBack(true);
-			}
 			return;
 		}
 		bool allowedToSwitch = false;
@@ -59,36 +55,43 @@ namespace Client::Module::AimbotModule
 			type = Helper::RotationType::Instant;
 			if (isMelee(weaponId))
 			{
-				if (!bWasSet && pWeapon->CanPrimaryAttack())
+				static bool isMelee_attacked = false;
+				static float lastMeleeSwing = 0.f;
+				if (pWeapon->CanPrimaryAttack())
 				{
-					// Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
 					cmd->viewangles = targetInfo.aimRotation.toVector();
 					if (rotationMode->GetSelected() == "PerfectSlient")
-					shouldPerfect = true;
-					bWasSet = true;
+						shouldPerfect = true;
+					isMelee_attacked = true;
+					lastMeleeSwing = I::GlobalVars->curtime;
 				}
-				else if (bWasSet) {
-					bWasSet = false;
-					// Helper::rotationManager.ForceBack(true);
+				if (isMelee_attacked)
+				{
+					if (I::GlobalVars->curtime - lastMeleeSwing >= 0.5f)
+					{
+						isMelee_attacked = false;
+					}
+					else
+					{
+						cmd->viewangles = targetInfo.aimRotation.toVector();
+						if (rotationMode->GetSelected() == "PerfectSlient")
+							shouldPerfect = true;
+					}
 				}
-			}else
+			}
+			else
 			{
-				if (!bWasSet && pWeapon->CanPrimaryAttack())
+				if (pWeapon->CanPrimaryAttack())
 				{
-					// Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
 					cmd->viewangles = targetInfo.aimRotation.toVector();
 					if (rotationMode->GetSelected() == "PerfectSlient")
-					shouldPerfect = true;
-					bWasSet = true;
-				}
-				else if (bWasSet) {
-					bWasSet = false;
-					// Helper::rotationManager.ForceBack(true);
+						shouldPerfect = true;
 				}
 			}
 		}
 		else
 			Helper::rotationManager.moveTo(targetInfo.aimRotation, distance / 571.43f, isInCrosshair, type);
+		isAiming = true;
 
 		if (cmd->buttons & IN_ATTACK)
 		{
@@ -103,9 +106,6 @@ namespace Client::Module::AimbotModule
 			{
 				cmd->buttons &= ~IN_ATTACK;
 			}
-			// if (rotationMode->GetSelected() == "PerfectSlient" && cmd->buttons & IN_ATTACK && pLocal->CanAttackFull() && pWeapon->CanPrimaryAttack())
-			// 	// Client::client.moduleManager.fakeLag->doCollectPacket();
-			// 	shouldPerfect = true;
 			if (rotationMode->GetSelected() == "PerfectSlient" || rotationMode->GetSelected() == "Instant")
 			{
 				if (pWeapon->CanPrimaryAttack())
@@ -113,15 +113,19 @@ namespace Client::Module::AimbotModule
 			}
 		}
 	}
-	void Aimbot::onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
+	void Aimbot::onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
 	{
 		bool thirdperson_lock = Client::client.moduleManager.thirdPerson->isLocking;
 		if (thirdperson_lock)
+		{
+			isAiming = false;
 			return;
-		if (rotationMode->GetSelected() == "Legit")
+		}
+		else if (rotationMode->GetSelected() == "Legit" && isAiming)
 		{
 			I::EngineClient->SetViewAngles(cmd->viewangles);
 		}
+		isAiming = false;
 	}
 	void Aimbot::onRender2D()
 	{
@@ -189,14 +193,14 @@ namespace Client::Module::AimbotModule
 			return false;
 		}
 		auto thirdPerson = Client::client.moduleManager.thirdPerson;
-		if (thirdPerson->getEnabled() && thirdPerson->isLocking)
+		if (thirdPerson->getEnabled() && thirdPerson->isLocking && !thirdPerson->allowAimbot->GetValue())
 			return false;
 
 		if (cmd->buttons & IN_USE)
 			return false;
 
 		// if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pLocal->m_isIncapacitated())
-		if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue())
+		if (!pLocal->CanAttackFull() || pLocal->m_isHangingFromLedge() || pLocal->m_isHangingFromTongue() || pLocal->m_isIncapacitated())
 			return false;
 
 		// You could also check if the current spread is -1.0f and not run nospread I guess.
@@ -405,11 +409,13 @@ namespace Client::Module::AimbotModule
 				return false;
 
 			Vector hitbox = target->GetBaseEntity()->GetBaseAnimating()->GetHitboxPositionByGroup(GetHitbox(classType));
-			CTraceFilterHitscan filter{pLocal};
-			auto pHit{G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), hitbox, &filter)};
-			if (!pHit || pHit->entindex() != target->entindex())
-				return false;
-			return true;
+			// CTraceFilterHitscan filter{pLocal};
+			// auto pHit{G::Util.GetHitEntity(pLocal->Weapon_ShootPosition(), hitbox, &filter)};
+			// if (!pHit || pHit->entindex() != target->entindex())
+			// 	return false;
+			CTraceFilterWorldAndPropsOnly filter;
+			bool isVisible = G::Util.IsVisible(pLocal->Weapon_ShootPosition(), hitbox, &filter);
+			return isVisible;
 		};
 		for (auto &[enabled, classType] : entityTypes)
 		{

@@ -137,16 +137,17 @@ namespace Client::Module
 
             V::BooleanValue *debug = new V::BooleanValue("Debug Mode", false);
 
-            void onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
-            void onPostCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
+            void onPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal, int PredictedFlags) override;
+            void onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
             void onRender2D() override;
             void onEnabled() override;
+            void onDisabled() override {isAiming = false;};
 
             TargetInfo targetInfo;
             bool shouldPerfect = false;
+            bool isAiming = false;
 
         private:
-            bool bWasSet = false;
             bool ShouldRun(C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon, CUserCmd *cmd);
             std::pair<bool, int> CheckWeapon(C_TerrorWeapon *pWeapon);
             bool isInCrossHair(CUserCmd *cmd, C_TerrorPlayer *pLocal, IClientEntity *target);
