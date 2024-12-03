@@ -49,5 +49,6 @@ namespace Client::Module
 
 	private:
 		int keyTimeout = 0;
+		Vector renderServerCrosshair = Vector(0, 0, 0);
 	};
 }

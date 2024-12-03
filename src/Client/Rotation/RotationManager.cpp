@@ -11,7 +11,8 @@ namespace Helper
         this->isInCrosshair = isInCrosshair;
         this->keepTicks = TIME_TO_TICKS(rotations->keepTick->GetValue());
         this->DisabledRotation = false;
-        if (rotationMode == RotationType::Instant) {
+        if (rotationMode == RotationType::Instant)
+        {
             this->serverRotation = rotation;
             this->keepTicks = 1;
         }
@@ -20,7 +21,11 @@ namespace Helper
     {
         Vector viewAngles;
         I::EngineClient->GetViewAngles(viewAngles);
-        Rotation viewAnglesRotation = Rotation(viewAngles.y, viewAngles.x);
+        Rotation viewAnglesRotation;
+        if (forceBackRotation.isZero())
+            viewAnglesRotation = Rotation(viewAngles.y, viewAngles.x);
+        else
+            viewAnglesRotation = forceBackRotation;
         if (DisabledRotation || serverRotation.isZero())
         {
             serverRotation = viewAnglesRotation;
@@ -50,7 +55,7 @@ namespace Helper
                 if (rotationDifference <= 0.f)
                     DisabledRotation = true;
             }
-            else 
+            else
             {
                 serverRotation = calculateRotation(serverRotation, targetRotation, targetDistance, isInCrosshair);
 
@@ -104,7 +109,8 @@ namespace Helper
             straightLinePitch = abs(angleDifference.pitch / rotationDifference) * turnSpeed.pitchTurnSpeed;
         }
         float slowFactor = 1.f;
-        if (slowTicks > 0) {
+        if (slowTicks > 0)
+        {
             slowFactor = 0.3f;
             slowTicks--;
         }
@@ -120,7 +126,10 @@ namespace Helper
             Vector viewAngles;
             I::EngineClient->GetViewAngles(viewAngles);
             Rotation viewAnglesRotation = Rotation(viewAngles.y, viewAngles.x);
-            serverRotation = viewAnglesRotation;
+            if (forceBackRotation.isZero())
+                serverRotation = viewAnglesRotation;
+            else
+                serverRotation = forceBackRotation;
         }
     }
     Rotation RotationManager::clampRotation(Rotation rotation)

@@ -21,10 +21,11 @@ namespace Helper
         };
         bool DisabledRotation = true;
         void ForceBack(bool instant = false);
-
+        void SetForceBackRotation(Rotation rotation) {forceBackRotation = rotation;};
     private:
         Rotation serverRotation = Rotation();
         Rotation targetRotation;
+        Rotation forceBackRotation = Rotation();
         int keepTicks = 0;
         float targetDistance = 0.0f;
         bool isInCrosshair = false;

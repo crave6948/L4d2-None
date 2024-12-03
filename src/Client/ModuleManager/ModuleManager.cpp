@@ -62,9 +62,10 @@ namespace Client::Module
             return;
         }
         C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
-        if (!Helper::rotationManager.getServerRotationVector().IsZero())
+        int screenW = G::Draw.m_nScreenW, screenH = G::Draw.m_nScreenH;
+        if (!renderServerCrosshair.IsZero())
         {
-            Vector vec = U::Math.AngleVectors(Helper::rotationManager.getServerRotationVector());
+            Vector vec = U::Math.AngleVectors(renderServerCrosshair);
             CGameTrace trace;
             CTraceFilterHitAll filter{pLocal};
             G::Util.Trace(pLocal->Weapon_ShootPosition(), pLocal->Weapon_ShootPosition() + (vec * 1400.0f), (MASK_SHOT | CONTENTS_GRATE), &filter, &trace);
@@ -72,28 +73,23 @@ namespace Client::Module
             Vector screen;
             G::Util.W2S(vViewAngleOnWorld, screen);
 
-            int screenW = G::Draw.m_nScreenW, screenH = G::Draw.m_nScreenH;
-
-            if (Helper::rotationManager.DisabledRotation)
-            {
-                screenW = screenW / 2;
-                screenH = screenH / 2;
-                G::Draw.Line(screenW, screenH, screenW - 4, screenH + 4, Color(255, 255, 255, 255));
-                G::Draw.Line(screenW, screenH, screenW + 4, screenH + 4, Color(255, 255, 255, 255));
-                screenW = screenW * 2;
-                screenH = screenH * 2;
-            }
-            else
-            {
-                G::Draw.Line(screen.x, screen.y, screen.x - 4, screen.y + 4, Color(255, 255, 255, 255));
-                G::Draw.Line(screen.x, screen.y, screen.x + 4, screen.y + 4, Color(255, 255, 255, 255));
-            }
-            // G::Draw.Circle(screen.x, screen.y, 2, 8, );
+            G::Draw.Line(screen.x, screen.y, screen.x - 4, screen.y + 4, Color(255, 255, 255, 255));
+            G::Draw.Line(screen.x, screen.y, screen.x + 4, screen.y + 4, Color(255, 255, 255, 255));
+        }
+        
+        {
+            screenW = screenW / 2;
+            screenH = screenH / 2;
+            G::Draw.Line(screenW, screenH, screenW - 4, screenH + 4, Color(255, 255, 255, 255));
+            G::Draw.Line(screenW, screenH, screenW + 4, screenH + 4, Color(255, 255, 255, 255));
+            screenW = screenW * 2;
+            screenH = screenH * 2;
         }
     }
 
     void ModuleManager::onCreateMove(CUserCmd *cmd, C_TerrorPlayer *pLocal, C_TerrorWeapon *pWeapon)
     {
+        renderServerCrosshair = Vector(0, 0, 0);
         if (pLocal && !pLocal->deadflag())
         {
             Vector oldViewangles = cmd->viewangles;
@@ -103,9 +99,7 @@ namespace Client::Module
                     continue;
                 mod->onPreCreateMove(cmd, pWeapon, pLocal);
             }
-            Helper::rotationManager.onUpdate();
-            if (!Helper::rotationManager.getServerRotationVector().IsZero() && !Helper::rotationManager.DisabledRotation)
-                cmd->viewangles = Helper::rotationManager.getServerRotationVector();
+
             for (Module *mod : featurelist)
             {
                 if (!mod->getEnabled())
@@ -131,18 +125,32 @@ namespace Client::Module
                 }
                 F::EnginePrediction.Finish(pLocal, cmd);
             }
+            Helper::rotationManager.onUpdate();
+            if (aimbot->getEnabled() && aimbot->shouldPerfect)
+            {
+            }
+            else
+            {
+                if (!Helper::rotationManager.getServerRotationVector().IsZero() && !Helper::rotationManager.DisabledRotation)
+                    cmd->viewangles = Helper::rotationManager.getServerRotationVector();
+            }
             for (Module *mod : featurelist)
             {
                 if (!mod->getEnabled())
                     continue;
                 mod->onPostPrediction(cmd, pWeapon, pLocal);
             }
+            Vector viewForMovement = oldViewangles;
+            Vector viewForPerfectSlient = cmd->viewangles;
             auto thirdPerson = Client::client.moduleManager.thirdPerson;
             if (thirdPerson->getEnabled() && thirdPerson->isLocking && !thirdPerson->freeStrafe->GetValue())
-                oldViewangles = cmd->viewangles;
+                viewForMovement = cmd->viewangles;
+            if (thirdPerson->getEnabled() && thirdPerson->isLocking)
+                viewForPerfectSlient = cmd->viewangles;
             // pSilent
             {
                 static bool bWasSet = false;
+                static int collected = 0;
                 bool shouldDoPerfect = false;
                 if (aimbot->getEnabled() && aimbot->shouldPerfect)
                     shouldDoPerfect = true;
@@ -152,15 +160,30 @@ namespace Client::Module
                 {
                     *I::pSendPacket = false;
                     bWasSet = true;
+                    collected++;
                 }
                 else if (bWasSet)
                 {
                     *I::pSendPacket = true;
-                    cmd->viewangles = oldViewangles;
+                    cmd->viewangles = viewForPerfectSlient;
+                    collected = 0;
                     bWasSet = false;
                 }
+                auto fakeLag = Client::client.moduleManager.fakeLag;
+                if (!fakeLag->getEnabled())
+                    if (collected > 4)
+                    {
+                        *I::pSendPacket = true;
+                        if (cmd->buttons & IN_ATTACK)
+                            cmd->buttons &= ~IN_ATTACK;
+                        cmd->viewangles = viewForPerfectSlient;
+                        collected = 0;
+                        bWasSet = false;
+                    }
             }
-            G::Util.FixMovement(oldViewangles, cmd);
+            renderServerCrosshair = cmd->viewangles;
+            thirdPerson->rotation = renderServerCrosshair;
+            G::Util.FixMovement(viewForMovement, cmd);
         }
     }
     void ModuleManager::onFrameStageNotify(ClientFrameStage_t curStage)

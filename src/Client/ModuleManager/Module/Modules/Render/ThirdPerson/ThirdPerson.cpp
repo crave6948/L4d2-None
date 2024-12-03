@@ -26,16 +26,21 @@ namespace Client::Module
             C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
             C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();
             auto [should, weaponId] = CheckWeapon(pWeapon);
-            if (!should) return;
-            if (weaponId != EWeaponID::WEAPON_MELEE) return;
+            if (!should)
+                return;
+            if (weaponId != EWeaponID::WEAPON_MELEE)
+                return;
             // std::string text3 = "Time AttackQueued : " + std::to_string(pWeapon->);
             // G::Draw.String(EFonts::DEBUG, G::Draw.m_nScreenW / 2, G::Draw.m_nScreenH / 2 + 40, Color(255, 255, 255, 255), TXT_CENTERXY, text3.c_str());
         }
         void ThirdPerson::onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
-            rotation = cmd->viewangles;
+            // rotation = cmd->viewangles;
             isAllowToPerfect = cmd->buttons & IN_ATTACK && ShouldRun(pLocal, pWeapon, cmd) && pWeapon->CanPrimaryAttack();
-            
+
+            auto aimbot = Client::client.moduleManager.aimbot;
+            if (aimbot->getEnabled() && aimbot->isAiming)
+                return;
             if (freePSilent->GetValue() && isLocking && isAllowToPerfect)
             {
                 Vector viewAngles;
@@ -43,7 +48,7 @@ namespace Client::Module
                 cmd->viewangles = viewAngles;
             }
         }
-        void ThirdPerson::onPreCreateMove(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
+        void ThirdPerson::onPrePrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal)
         {
             static bool originalThirdPersonState = false;
             if (GetAsyncKeyState(0x43) & 1)
@@ -65,7 +70,11 @@ namespace Client::Module
             }
             if (isLocking)
             {
-                Helper::rotationManager.moveTo(Helper::Rotation().toRotation(lockRotation), 1, false, Helper::RotationType::Instant);
+                auto aimbot = Client::client.moduleManager.aimbot;
+                if (aimbot->getEnabled() && aimbot->isAiming)
+                    return;
+                auto rotation = Helper::Rotation().toRotation(lockRotation);
+                Helper::rotationManager.moveTo(rotation, 1, false, Helper::RotationType::Instant);
             }
         }
         void ThirdPerson::onFrameStageNotify(ClientFrameStage_t curStage)
