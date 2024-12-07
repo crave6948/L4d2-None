@@ -7,7 +7,7 @@ namespace Client::Module::AimbotModule
 {
 	void Aimbot::onPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal, int _PredictedFlags)
 	{
-		shouldPerfect = false;
+		shouldPerfectSilent = false;
 		isAiming = false;
 		isLeftClicking = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
 		if (!isLeftClicking || !ShouldRun(pLocal, pWeapon, cmd))
@@ -61,13 +61,13 @@ namespace Client::Module::AimbotModule
 				{
 					cmd->viewangles = targetInfo.aimRotation.toVector();
 					if (rotationMode->GetSelected() == "PerfectSlient")
-						shouldPerfect = true;
+						shouldPerfectSilent = true;
 					isMelee_attacked = true;
 					lastMeleeSwing = I::GlobalVars->curtime;
 				}
 				if (isMelee_attacked)
 				{
-					if (I::GlobalVars->curtime - lastMeleeSwing >= 0.5f)
+					if (I::GlobalVars->curtime - lastMeleeSwing >= meleeSwing->GetValue())
 					{
 						isMelee_attacked = false;
 					}
@@ -75,7 +75,7 @@ namespace Client::Module::AimbotModule
 					{
 						cmd->viewangles = targetInfo.aimRotation.toVector();
 						if (rotationMode->GetSelected() == "PerfectSlient")
-							shouldPerfect = true;
+							shouldPerfectSilent = true;
 					}
 				}
 			}
@@ -85,7 +85,7 @@ namespace Client::Module::AimbotModule
 				{
 					cmd->viewangles = targetInfo.aimRotation.toVector();
 					if (rotationMode->GetSelected() == "PerfectSlient")
-						shouldPerfect = true;
+						shouldPerfectSilent = true;
 				}
 			}
 		}
@@ -350,7 +350,13 @@ namespace Client::Module::AimbotModule
 		// collect all targets and find the best one (compare them by a score)
 		Vector clientViewAngles = Helper::rotationManager.getServerRotationVector();
 		if (Helper::rotationManager.DisabledRotation || !hasLeftClickBefore)
-			I::EngineClient->GetViewAngles(clientViewAngles);
+		{
+			auto thirdperson = Client::client.moduleManager.thirdPerson;
+			if (thirdperson->getEnabled() && thirdperson->isLocking)
+				clientViewAngles = thirdperson->lockRotation;
+			else
+				I::EngineClient->GetViewAngles(clientViewAngles);
+		}
 		float currentScore = 1000.f;
 		const auto updateTarget = [&](IClientEntity *target, float fov, float distance) -> bool
 		{

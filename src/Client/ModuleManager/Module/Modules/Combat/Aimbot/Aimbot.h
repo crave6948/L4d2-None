@@ -48,6 +48,7 @@ namespace Client::Module
                 vManager.AddValue(meleePreLook);
                 vManager.AddValue(meleeFovTrigger);
                 vManager.AddValue(meleeFov);
+                vManager.AddValue(meleeSwing);
 
                 vManager.AddValue(sortModes);
                 vManager.AddValue(rotationMode);
@@ -84,6 +85,7 @@ namespace Client::Module
                     FloatSlider(meleePreLook);
                     IntegerSlider(meleeFovTrigger);
                     IntegerSlider(meleeFov);
+                    FloatSlider(meleeSwing);
                 }
 
                 ListBox(sortModes);
@@ -115,6 +117,7 @@ namespace Client::Module
             V::FloatValue *meleePreLook = new V::FloatValue("MeleePreLookRange", 100.f, 0.f, 400.f);
             V::NumberValue *meleeFovTrigger = new V::NumberValue("MeleeFovTrigger", 10, 0, 180);
             V::NumberValue *meleeFov = new V::NumberValue("MeleeFov", 180, 0, 180);
+            V::FloatValue *meleeSwing = new V::FloatValue("MeleeSwingTime", 0.5f, 0.f, 1.f, "s");
 
             V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
             V::ListValue *rotationMode = new V::ListValue("Rotation Mode", {"Legit", "Instant", "Slient", "PerfectSlient"}, "Slient");
@@ -144,7 +147,7 @@ namespace Client::Module
             void onDisabled() override {isAiming = false;};
 
             TargetInfo targetInfo;
-            bool shouldPerfect = false;
+            bool shouldPerfectSilent = false;
             bool isAiming = false;
 
         private:
