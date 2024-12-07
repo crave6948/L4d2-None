@@ -126,7 +126,7 @@ namespace Client::Module
                 F::EnginePrediction.Finish(pLocal, cmd);
             }
             Helper::rotationManager.onUpdate();
-            if (aimbot->getEnabled() && aimbot->shouldPerfect)
+            if (aimbot->getEnabled() && aimbot->shouldPerfectSilent)
             {
             }
             else
@@ -142,7 +142,6 @@ namespace Client::Module
             }
             Vector viewForMovement = oldViewangles;
             Vector viewForPerfectSlient = cmd->viewangles;
-            auto thirdPerson = Client::client.moduleManager.thirdPerson;
             if (thirdPerson->getEnabled() && thirdPerson->isLocking && !thirdPerson->freeStrafe->GetValue())
                 viewForMovement = cmd->viewangles;
             if (thirdPerson->getEnabled() && thirdPerson->isLocking)
@@ -152,9 +151,11 @@ namespace Client::Module
                 static bool bWasSet = false;
                 static int collected = 0;
                 bool shouldDoPerfect = false;
-                if (aimbot->getEnabled() && aimbot->shouldPerfect)
+                if (aimbot->getEnabled() && aimbot->shouldPerfectSilent)
                     shouldDoPerfect = true;
                 if (thirdPerson->getEnabled() && thirdPerson->getShouldPerfectSilent())
+                    shouldDoPerfect = true;
+                if (noSpread->getEnabled() && noSpread->shouldPerfectSilent)
                     shouldDoPerfect = true;
                 if (shouldDoPerfect)
                 {

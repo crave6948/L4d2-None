@@ -44,6 +44,7 @@ namespace Client::Module
 		{
 			static const auto pfSharedRandomFloat = reinterpret_cast<float (*)(const char *, float, float, int)>(U::Offsets.m_dwSharedRandomFloat);
 
+			shouldPerfectSilent = false;
 			if (!ShouldRun(pLocal, pWeapon, cmd))
 				return;
 
@@ -70,6 +71,10 @@ namespace Client::Module
 			U::Math.ClampAngles(vAngle);
 
 			cmd->viewangles = vAngle;
+			if (perfectSilent->GetValue())
+			{
+				shouldPerfectSilent = true;
+			}
 		}
 	}
 }
