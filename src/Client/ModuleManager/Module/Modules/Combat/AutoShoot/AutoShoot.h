@@ -27,8 +27,11 @@ namespace Client::Module
 			{
 				BooleanCheckBox(allowPistol);
 				BooleanCheckBox(autoPunch);
-				BooleanCheckBox(onlySniper);
-				BooleanCheckBox(onlyShotgun);
+				if (autoPunch->GetValue())
+				{
+					BooleanCheckBox(onlySniper);
+					BooleanCheckBox(onlyShotgun);
+				}
 				FloatRange(keepForTicks);
 				FloatRange(clickCps);
 				BooleanCheckBox(allowOtherGuns);

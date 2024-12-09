@@ -139,6 +139,7 @@ namespace Client::Module::AimbotModule
 			return;
 		}
 		C_TerrorPlayer *pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer *>();
+		C_TerrorWeapon *pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon *>();
 		float flR = tanf(DEG2RAD(gunFov->GetValue()) / 2) / tanf(DEG2RAD(pLocal->IsZoomed() ? 30 : 110) / 2) * G::Draw.m_nScreenW;
 		G::Draw.OutlinedCircle(G::Draw.m_nScreenW / 2, G::Draw.m_nScreenH / 2, flR, 32, Color(178, 190, 181, 255));
 		if (!debug->GetValue())
@@ -172,6 +173,12 @@ namespace Client::Module::AimbotModule
 			G::Draw.Line(screen.x + size, screen.y + size, screen.x + half, screen.y + size, Color(255, 255, 255, 255));
 			G::Draw.Line(screen.x + size, screen.y + size, screen.x + size, screen.y + half, Color(255, 255, 255, 255));
 		}
+		if (!pWeapon)
+			return;
+		int weaponId = pWeapon->GetWeaponID();
+		std::string weaponId_str = std::to_string(weaponId);
+		G::Draw.String(EFonts::DEBUG, startX, startY, Color(255, 255, 255, 255), TXT_DEFAULT, weaponId_str.c_str());
+		startY += getFontHeight + 1;
 	}
 	void Aimbot::onEnabled()
 	{
@@ -220,7 +227,6 @@ namespace Client::Module::AimbotModule
 	{
 		if (!pWeapon)
 			return std::make_pair<bool, int>(false, 9999);
-		;
 		switch (pWeapon->GetWeaponID())
 		{
 		case WEAPON_AK47:
@@ -245,6 +251,8 @@ namespace Client::Module::AimbotModule
 		case WEAPON_MELEE:
 		case WEAPON_CHAINSAW:
 			return std::make_pair<bool, int>(meleeOnly->GetValue(), pWeapon->GetWeaponID());
+		case WEAPON_GNOME:
+			return std::make_pair<bool, int>(gnome->GetValue(), pWeapon->GetWeaponID());
 		default:
 			break;
 		}

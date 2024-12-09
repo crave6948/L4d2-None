@@ -49,6 +49,7 @@ namespace Client::Module
                 vManager.AddValue(meleeFovTrigger);
                 vManager.AddValue(meleeFov);
                 vManager.AddValue(meleeSwing);
+                vManager.AddValue(gnome);
 
                 vManager.AddValue(sortModes);
                 vManager.AddValue(rotationMode);
@@ -86,6 +87,7 @@ namespace Client::Module
                     IntegerSlider(meleeFovTrigger);
                     IntegerSlider(meleeFov);
                     FloatSlider(meleeSwing);
+                    BooleanCheckBox(gnome);
                 }
 
                 ListBox(sortModes);
@@ -111,13 +113,14 @@ namespace Client::Module
             V::FloatValue *gunRange = new V::FloatValue("Range", 1400.f, 100.f, 2000.f);
             V::NumberValue *gunFov = new V::NumberValue("Fov", 180, 0, 180);
             V::NumberValue *gunFovTrigger = new V::NumberValue("GunFovTrigger", 10, 0, 180);
-            
+
             V::BooleanValue *meleeOnly = new V::BooleanValue("Melee", true);
             V::FloatValue *meleeRange = new V::FloatValue("MeleeRange", 150.f, 1.f, 400.f);
             V::FloatValue *meleePreLook = new V::FloatValue("MeleePreLookRange", 100.f, 0.f, 400.f);
             V::NumberValue *meleeFovTrigger = new V::NumberValue("MeleeFovTrigger", 10, 0, 180);
             V::NumberValue *meleeFov = new V::NumberValue("MeleeFov", 180, 0, 180);
             V::FloatValue *meleeSwing = new V::FloatValue("MeleeSwingTime", 0.5f, 0.f, 1.f, "s");
+            V::BooleanValue *gnome = new V::BooleanValue("Gnome", false);
 
             V::ListValue *sortModes = new V::ListValue("Sort Mode", {"Distance", "Fov", "Both"}, "Both");
             V::ListValue *rotationMode = new V::ListValue("Rotation Mode", {"Legit", "Instant", "Slient", "PerfectSlient"}, "Slient");
@@ -144,7 +147,7 @@ namespace Client::Module
             void onPostPrediction(CUserCmd *cmd, C_TerrorWeapon *pWeapon, C_TerrorPlayer *pLocal) override;
             void onRender2D() override;
             void onEnabled() override;
-            void onDisabled() override {isAiming = false;};
+            void onDisabled() override { isAiming = false; };
 
             TargetInfo targetInfo;
             bool shouldPerfectSilent = false;
@@ -194,7 +197,11 @@ namespace Client::Module
                     return "Unknown";
                 }
             }
-            bool isMelee(int weaponId) { return weaponId == WEAPON_MELEE || weaponId == WEAPON_CHAINSAW; };
+            bool isMelee(int weaponId)
+            {
+                if (gnome->GetValue() && weaponId == WEAPON_GNOME) return true;
+                return weaponId == WEAPON_MELEE || weaponId == WEAPON_CHAINSAW;
+            };
         };
     }
 };
